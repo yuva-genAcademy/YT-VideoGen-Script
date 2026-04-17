@@ -9,7 +9,24 @@
   </a>
 </p>
 
-Welcome to your YT-VideoGen Skill! This repository contains Remotion compositions for generating YouTube videos with AI agent architectures and neural network visualizations.
+Welcome to your YT-VideoGen Skill! This repository contains Remotion compositions for generating YouTube videos with AI agent architectures and neural network visualizations. It is designed to be used as a **Knowledge Skill** by AI agents to build high-quality technical videos efficiently.
+
+## 🚀 How to Use as a Skill
+
+This project isn't just a video template; it's an AI-integrated skill. You can point an AI agent (like Antigravity or Claude) to this repository to perform complex video tasks.
+
+### Agent Prompt Examples
+Try using these prompts with your AI assistant:
+- *"Use the YT-VideoGen skill to create a 60-second video about the benefits of multi-agent systems using the AgentArchitecture composition."*
+- *"I need to explain how neural networks learn. Use the NeuralNetworks composition in the YT-VideoGen skill to generate a high-end visual explanation."*
+- *"Update the narration script for the AgentArchitecture video. Ensure the timing follows the 160 wpm rule defined in the skill rules."*
+
+### 🛠 Skill Capabilities
+The skill includes domain-specific knowledge for:
+- **Narrated Videos**: Automatic timing calibration at 160 wpm with word-to-frame mapping.
+- **Data Visualization**: Patterns for charts, спектрограмм, and neural network layers.
+- **Branding & Assets**: Consistent use of premium color palettes (GA-Colors) and custom logos.
+- **Animations**: Pre-built logic for spotlights, highlight rings, and smooth scene transitions.
 
 ## Commands
 
