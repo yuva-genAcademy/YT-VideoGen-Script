@@ -1,18 +1,52 @@
 import "./index.css";
-import { Composition } from "remotion";
-import { MyComposition } from "./Composition";
+import React from "react";
+import { Composition, Folder } from "remotion";
+import { MyComposition } from "./compositions/MyComposition/MyComposition";
+import { AgentArchitecture, TOTAL_DURATION } from "./compositions/AgentArchitecture/AgentArchitecture";
+import { NarratedAgentArchitecture, NARRATED_TOTAL_DURATION } from "./compositions/AgentArchitectureNarrated/AgentArchitectureNarrated";
+import { NeuralNetworks, NEURAL_NETWORK_DURATION } from "./compositions/NeuralNetworks/NeuralNetworks";
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
       <Composition
-        id="MyComp"
+        id="YT-VideoGen-Starter"
         component={MyComposition}
         durationInFrames={60}
         fps={30}
         width={1280}
         height={720}
       />
+      <Folder name="AgentArchitecture">
+        <Composition
+          id="AgentArchitecture"
+          component={AgentArchitecture}
+          durationInFrames={TOTAL_DURATION}
+          fps={30}
+          width={1280}
+          height={720}
+        />
+      </Folder>
+      <Folder name="NarratedAgentArchitecture">
+        <Composition
+          id="NarratedAgentArchitecture"
+          component={NarratedAgentArchitecture}
+          durationInFrames={NARRATED_TOTAL_DURATION}
+          fps={30}
+          width={1280}
+          height={720}
+        />
+      </Folder>
+      <Folder name="NeuralNetworks">
+        <Composition
+          id="NeuralNetworks"
+          component={NeuralNetworks}
+          durationInFrames={NEURAL_NETWORK_DURATION}
+          fps={30}
+          width={1280}
+          height={720}
+        />
+      </Folder>
     </>
   );
 };

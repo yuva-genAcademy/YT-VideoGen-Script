@@ -1,4 +1,4 @@
-# Remotion video
+# YT-VideoGen Skill
 
 <p align="center">
   <a href="https://github.com/remotion-dev/logo">
@@ -9,7 +9,7 @@
   </a>
 </p>
 
-Welcome to your Remotion project!
+Welcome to your YT-VideoGen Skill! This repository contains Remotion compositions for generating YouTube videos with AI agent architectures and neural network visualizations.
 
 ## Commands
 

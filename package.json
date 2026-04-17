@@ -1,7 +1,7 @@
 {
-  "name": "GenAcademy",
+  "name": "yt-videogen-skill",
   "version": "1.0.0",
-  "description": "My Remotion video",
+  "description": "A Remotion-based skill for generating YouTube videos with AI agents and neural network visualizations.",
   "repository": {},
   "license": "UNLICENSED",
   "private": true,
