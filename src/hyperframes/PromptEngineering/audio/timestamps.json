@@ -1,0 +1,90 @@
+{
+  "total_duration": 234.706667,
+  "voice": "bm_george",
+  "sections": [
+    {
+      "id": "s01",
+      "label": "Hook",
+      "start": 0.0,
+      "audio_duration": 19.072,
+      "end": 25.25
+    },
+    {
+      "id": "s02",
+      "label": "Base Prompt",
+      "start": 21.07,
+      "audio_duration": 6.635,
+      "end": 29.32
+    },
+    {
+      "id": "s03",
+      "label": "Zero-Shot",
+      "start": 29.7,
+      "audio_duration": 16.043,
+      "end": 48.45
+    },
+    {
+      "id": "s04",
+      "label": "Role Prompting",
+      "start": 47.74,
+      "audio_duration": 14.741,
+      "end": 66.11
+    },
+    {
+      "id": "s05",
+      "label": "Few-Shot",
+      "start": 64.48,
+      "audio_duration": 13.845,
+      "end": 82.86
+    },
+    {
+      "id": "s06",
+      "label": "Chain of Thought",
+      "start": 80.33,
+      "audio_duration": 21.227,
+      "end": 106.58
+    },
+    {
+      "id": "s07",
+      "label": "Self-Consistency",
+      "start": 103.56,
+      "audio_duration": 16.555,
+      "end": 121.56
+    },
+    {
+      "id": "s08",
+      "label": "Tree of Thoughts",
+      "start": 122.11,
+      "audio_duration": 17.152,
+      "end": 140.21
+    },
+    {
+      "id": "s09",
+      "label": "ReAct",
+      "start": 141.26,
+      "audio_duration": 15.616,
+      "end": 159.26
+    },
+    {
+      "id": "s10",
+      "label": "Prompt Chaining",
+      "start": 158.88,
+      "audio_duration": 14.144,
+      "end": 177.28
+    },
+    {
+      "id": "s11",
+      "label": "Comparison",
+      "start": 175.02,
+      "audio_duration": 39.979,
+      "end": 219.52
+    },
+    {
+      "id": "s12",
+      "label": "Outro",
+      "start": 217.0,
+      "audio_duration": 17.707,
+      "end": 238.0
+    }
+  ]
+}

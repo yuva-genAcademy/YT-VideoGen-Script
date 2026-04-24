@@ -6,6 +6,12 @@ dist
 # Ignore the output video from Git but not videos you import into src/.
 out
 
+# HyperFrames renders and generated audio/video
+src/hyperframes/**/renders/
+src/hyperframes/**/audio/*.wav
+src/hyperframes/**/audio/*.mp3
+*.pdf
+
 # AI Agent Metadata and IDEs
 .agent/
 .claude/
