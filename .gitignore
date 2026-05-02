@@ -7,9 +7,12 @@ dist
 out
 
 # HyperFrames renders and generated audio/video
+renders/
+public/
 src/hyperframes/**/renders/
 src/hyperframes/**/audio/*.wav
 src/hyperframes/**/audio/*.mp3
+**/__pycache__/
 *.pdf
 
 # AI Agent Metadata and IDEs

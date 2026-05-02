@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>How AI Is Trained — The Internet in a Box</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #FDFCFB; overflow: hidden; }
+
+    #root {
+      position: relative; width: 1920px; height: 1080px; overflow: hidden;
+      background-color: #FDFCFB;
+      background-image:
+        linear-gradient(rgba(0,0,0,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      font-family: 'DM Sans', sans-serif; color: #1C1917;
+    }
+
+    .scene { position: absolute; inset: 0; opacity: 0; }
+
+    /* Cards */
+    .card { background: #FFFFFF; border-radius: 8px; }
+    .card-black  { border: 3.5px solid #000000; box-shadow: 5px 5px 0 rgba(0,0,0,0.10); }
+    .card-yellow { border: 3.5px solid #FEFB41; box-shadow: 5px 5px 0 rgba(254,251,65,0.35); }
+    .card-navy   { border: 3.5px solid #202E4A; box-shadow: 5px 5px 0 rgba(32,46,74,0.15); }
+    .card-red    { border: 3.5px solid #DC2626; box-shadow: 5px 5px 0 rgba(220,38,38,0.18); }
+
+    /* Typography */
+    .display { font-family: 'Nunito', sans-serif; font-weight: 800; line-height: 1; }
+    .tag     { font-size: 13px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase;
+               color: #78716C; font-family: 'DM Sans', sans-serif; }
+    .mono    { font-family: 'JetBrains Mono', monospace; }
+    .clabel  { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
+               letter-spacing: 5px; text-transform: uppercase; color: #A8A29E; margin-bottom: 10px; }
+
+    /* Highlight */
+    .hl { position: relative; display: inline; }
+    .hl::before { content: ''; position: absolute; inset: 0 -5px; border-radius: 3px; z-index: -1; }
+    .hl-yellow::before { background: rgba(254,251,65,0.5); }
+
+    /* Scene persistent header */
+    .scene-title {
+      position: absolute; top: 52px; left: 120px;
+      font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 52px;
+      color: #1C1917; line-height: 1;
+    }
+
+    #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 200; }
+  </style>
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden;">
+  <defs>
+    <filter id="sketch" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="3" seed="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#1C1917"/>
+    </marker>
+  </defs>
+</svg>
+
+<div id="root" data-composition-id="how-ai-is-trained" data-width="1920" data-height="1080">
+
+  <!-- Narration audio — populated by audio/build_narration.py -->
+  <audio id="vo" class="clip" src="audio/narration.wav"
+         data-start="0" data-volume="1" data-track-index="10"></audio>
+
+  <div id="flash"></div>
+
+
+  <!-- ══════════════════════════════════════════════
+       SCENE 1 — INTRO  (0–32s)
+       Max elements at peak: 5
+  ══════════════════════════════════════════════════ -->
+  <div id="s1" class="scene">
+
+    <div id="s1-tag" class="tag"
+         style="position:absolute;top:290px;left:50%;transform:translateX(-50%);white-space:nowrap;opacity:0;">
+      Module 09 · Gen Academy
+    </div>
+
+    <div id="s1-h1" class="display"
+         style="position:absolute;top:340px;left:50%;transform:translateX(-50%);
+                font-size:112px;color:#1C1917;letter-spacing:-3px;white-space:nowrap;opacity:0;">
+      How AI Is Trained
+    </div>
+
+    <div id="s1-h2" class="display"
+         style="position:absolute;top:476px;left:50%;transform:translateX(-50%);
+                font-size:52px;color:#202E4A;white-space:nowrap;opacity:0;">
+      The Internet in a Box
+    </div>
+
+    <svg id="s1-usvg" viewBox="0 0 680 16"
+         style="position:absolute;top:542px;left:50%;transform:translateX(-50%);width:680px;height:16px;">
+      <path id="s1-uline" d="M4,12 L676,8" stroke="#FEFB41" stroke-width="4" fill="none"
+            stroke-linecap="round" stroke-dasharray="680" stroke-dashoffset="680"/>
+    </svg>
+
+    <!-- Body — fades IN after title, replaces nothing (both visible) -->
+    <div id="s1-body" style="position:absolute;top:606px;left:50%;transform:translateX(-50%);
+                             width:1300px;text-align:center;opacity:0;">
+      <div style="font-size:26px;color:#44403C;line-height:1.7;">
+        Three distinct phases. Different goals, different data, different costs.<br>
+        Understanding them changes how you <strong>evaluate models</strong>, <strong>interpret failures</strong>,
+        and <strong>make smarter decisions</strong>.
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       SCENE 2 — ARCHITECTURE FLOWCHART  (34–72s)
+       Single-column numbered pipeline — max 4 elements visible per phase
+  ══════════════════════════════════════════════════ -->
+  <div id="s2" class="scene">
+
+    <div id="s2-title" class="scene-title" style="opacity:0;">The Training Pipeline</div>
+    <svg id="s2-usvg" viewBox="0 0 480 16"
+         style="position:absolute;top:118px;left:120px;width:480px;height:16px;">
+      <path id="s2-uline" d="M4,12 L476,8" stroke="#FEFB41" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="480" stroke-dashoffset="480"/>
+    </svg>
+
+    <!--
+      7-step numbered list. Each row:
+        [num] [name — bold, 320px] [description — muted]
+      Row height: 80px. Divider line between rows.
+      Starting y: 168px. 7 rows × 80px + 6 dividers × 16px = 560+96 = 656px → ends 824px. Fits.
+    -->
+
+    <!-- Row 1 -->
+    <div id="s2-r1" style="position:absolute;top:168px;left:120px;right:120px;
+                           display:flex;align-items:center;gap:0;opacity:0;">
+      <div style="width:52px;height:52px;border-radius:50%;background:#000;display:flex;
+                  align-items:center;justify-content:center;flex-shrink:0;margin-right:28px;">
+        <span class="mono" style="font-size:16px;color:#FEFB41;font-weight:600;">01</span>
+      </div>
+      <div class="display" style="font-size:32px;color:#1C1917;width:400px;flex-shrink:0;">Raw Text Corpus</div>
+      <div style="font-size:20px;color:#78716C;">Web crawls · books · code · scientific papers</div>
+    </div>
+    <div id="s2-d1" style="position:absolute;top:240px;left:120px;right:120px;
+                           height:1px;background:#E7E5E4;opacity:0;"></div>
+
+    <!-- Row 2 -->
+    <div id="s2-r2" style="position:absolute;top:256px;left:120px;right:120px;
+                           display:flex;align-items:center;opacity:0;">
+      <div style="width:52px;height:52px;border-radius:50%;background:#202E4A;display:flex;
+                  align-items:center;justify-content:center;flex-shrink:0;margin-right:28px;">
+        <span class="mono" style="font-size:16px;color:#FEFB41;font-weight:600;">02</span>
+      </div>
+      <div class="display" style="font-size:32px;color:#202E4A;width:400px;flex-shrink:0;">Pre-Training</div>
+      <div style="font-size:20px;color:#78716C;"><span style="font-weight:600;color:#202E4A;">Transformer</span> — learns next-token prediction via attention</div>
+    </div>
+    <div id="s2-d2" style="position:absolute;top:328px;left:120px;right:120px;
+                           height:1px;background:#E7E5E4;opacity:0;"></div>
+
+    <!-- Row 3 -->
+    <div id="s2-r3" style="position:absolute;top:344px;left:120px;right:120px;
+                           display:flex;align-items:center;opacity:0;">
+      <div style="width:52px;height:52px;border-radius:50%;background:#000;display:flex;
+                  align-items:center;justify-content:center;flex-shrink:0;margin-right:28px;">
+        <span class="mono" style="font-size:16px;color:#FEFB41;font-weight:600;">03</span>
+      </div>
+      <div class="display" style="font-size:32px;color:#1C1917;width:400px;flex-shrink:0;">Base Model</div>
+      <div style="font-size:20px;color:#78716C;">Knows a lot. Follows nothing. Not a product.</div>
+    </div>
+    <div id="s2-d3" style="position:absolute;top:416px;left:120px;right:120px;
+                           height:1px;background:#E7E5E4;opacity:0;"></div>
+
+    <!-- Row 4 -->
+    <div id="s2-r4" style="position:absolute;top:432px;left:120px;right:120px;
+                           display:flex;align-items:center;opacity:0;">
+      <div style="width:52px;height:52px;border-radius:50%;background:#202E4A;display:flex;
+                  align-items:center;justify-content:center;flex-shrink:0;margin-right:28px;">
+        <span class="mono" style="font-size:16px;color:#FEFB41;font-weight:600;">04</span>
+      </div>
+      <div class="display" style="font-size:32px;color:#202E4A;width:400px;flex-shrink:0;">Instruction Tuning</div>
+      <div style="font-size:20px;color:#78716C;">Learns to follow directives, not just complete text</div>
+    </div>
+    <div id="s2-d4" style="position:absolute;top:504px;left:120px;right:120px;
+                           height:1px;background:#E7E5E4;opacity:0;"></div>
+
+    <!-- Row 5 -->
+    <div id="s2-r5" style="position:absolute;top:520px;left:120px;right:120px;
+                           display:flex;align-items:center;opacity:0;">
+      <div style="width:52px;height:52px;border-radius:50%;background:#202E4A;display:flex;
+                  align-items:center;justify-content:center;flex-shrink:0;margin-right:28px;">
+        <span class="mono" style="font-size:16px;color:#FEFB41;font-weight:600;">05</span>
+      </div>
+      <div class="display" style="font-size:32px;color:#202E4A;width:400px;flex-shrink:0;">RLHF</div>
+      <div style="font-size:20px;color:#78716C;">Shaped by human preference — different target than raw prediction</div>
+    </div>
+    <div id="s2-d5" style="position:absolute;top:592px;left:120px;right:120px;
+                           height:1px;background:#E7E5E4;opacity:0;"></div>
+
+    <!-- Row 6 -->
+    <div id="s2-r6" style="position:absolute;top:608px;left:120px;right:120px;
+                           display:flex;align-items:center;opacity:0;">
+      <div style="width:52px;height:52px;border-radius:50%;background:#202E4A;display:flex;
+                  align-items:center;justify-content:center;flex-shrink:0;margin-right:28px;">
+        <span class="mono" style="font-size:16px;color:#FEFB41;font-weight:600;">06</span>
+      </div>
+      <div class="display" style="font-size:32px;color:#202E4A;width:400px;flex-shrink:0;">Alignment Tuning</div>
+      <div style="font-size:20px;color:#78716C;">Safety, honesty, and refusal behavior</div>
+    </div>
+    <div id="s2-d6" style="position:absolute;top:680px;left:120px;right:120px;
+                           height:1px;background:#E7E5E4;opacity:0;"></div>
+
+    <!-- Row 7 -->
+    <div id="s2-r7" style="position:absolute;top:696px;left:120px;right:120px;
+                           display:flex;align-items:center;opacity:0;">
+      <div style="width:52px;height:52px;border-radius:50%;background:#FEFB41;display:flex;
+                  align-items:center;justify-content:center;flex-shrink:0;margin-right:28px;">
+        <span class="mono" style="font-size:16px;color:#000;font-weight:600;">07</span>
+      </div>
+      <div class="display" style="font-size:32px;color:#1C1917;width:400px;flex-shrink:0;">Your System</div>
+      <div style="font-size:20px;color:#78716C;">Prompts · RAG · guardrails — on top of the deployed model</div>
+    </div>
+
+    <!-- Closing callout -->
+    <div id="s2-note" style="position:absolute;bottom:56px;left:120px;right:120px;
+                             border-left:4px solid #FEFB41;padding-left:24px;opacity:0;">
+      <div style="font-size:22px;color:#44403C;line-height:1.5;">
+        Each stage inherits from the one before — and each introduces tradeoffs.
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       SCENE 3 — PRE-TRAINING  (75–145s)
+       4 sub-phases — each replaces the previous
+       Max elements at peak: 4
+  ══════════════════════════════════════════════════ -->
+  <div id="s3" class="scene">
+
+    <div id="s3-title" class="scene-title" style="opacity:0;">Phase 1 — Pre-Training</div>
+    <svg id="s3-usvg" viewBox="0 0 540 16"
+         style="position:absolute;top:118px;left:120px;width:540px;height:16px;">
+      <path id="s3-uline" d="M4,12 L536,8" stroke="#FEFB41" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="540" stroke-dashoffset="540"/>
+    </svg>
+
+    <!-- PHASE A — "The Transformer" (appears ~75s, fades ~88s) -->
+    <div id="s3-pa" style="position:absolute;top:170px;left:0;right:0;opacity:0;">
+
+      <!-- Big keyword -->
+      <div style="position:absolute;top:0;left:120px;">
+        <div class="tag" style="margin-bottom:12px;">Architecture</div>
+        <div class="display" style="font-size:120px;color:#202E4A;letter-spacing:-3px;">Transformer</div>
+        <div style="font-size:26px;color:#44403C;margin-top:16px;max-width:900px;line-height:1.55;">
+          Attention mechanisms learn which tokens in a sequence<br>
+          are relevant to each other — regardless of distance.
+        </div>
+      </div>
+
+      <!-- LLM logos row — bottom right -->
+      <div style="position:absolute;top:520px;left:120px;display:flex;gap:16px;align-items:center;">
+        <div style="font-size:18px;color:#A8A29E;margin-right:8px;">Every major LLM today:</div>
+        <div style="padding:10px 28px;background:#F5F5F4;border:2px solid #E7E5E4;
+                    border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:20px;
+                    font-weight:600;color:#1C1917;">GPT</div>
+        <div style="padding:10px 28px;background:#F5F5F4;border:2px solid #E7E5E4;
+                    border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:20px;
+                    font-weight:600;color:#1C1917;">Claude</div>
+        <div style="padding:10px 28px;background:#F5F5F4;border:2px solid #E7E5E4;
+                    border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:20px;
+                    font-weight:600;color:#1C1917;">Gemini</div>
+        <div style="padding:10px 28px;background:#F5F5F4;border:2px solid #E7E5E4;
+                    border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:20px;
+                    font-weight:600;color:#1C1917;">LLaMA</div>
+        <div style="font-size:20px;color:#A8A29E;font-style:italic;margin-left:8px;">All transformers.</div>
+      </div>
+
+    </div>
+
+    <!-- PHASE B — "The corpus & training task" (appears ~89s, fades ~107s) -->
+    <div id="s3-pb" style="position:absolute;top:170px;left:0;right:0;opacity:0;">
+
+      <!-- Left: corpus stat -->
+      <div style="position:absolute;top:0;left:120px;width:760px;">
+        <div class="tag" style="margin-bottom:14px;">Training Data</div>
+        <div class="display" style="font-size:96px;color:#1C1917;letter-spacing:-3px;line-height:0.95;">
+          Trillions<br>of tokens
+        </div>
+        <div style="font-size:22px;color:#78716C;margin-top:20px;line-height:1.6;">
+          Web crawls · books · code · scientific papers
+        </div>
+        <div style="margin-top:28px;padding:16px 24px;border-left:4px solid #FEFB41;
+                    font-size:19px;color:#44403C;line-height:1.55;">
+          All of English Wikipedia ≈ four billion tokens.<br>
+          A rounding error at this scale.
+        </div>
+      </div>
+
+      <!-- Right: training task -->
+      <div style="position:absolute;top:0;left:1000px;width:800px;">
+        <div class="tag" style="margin-bottom:14px;">The Training Task</div>
+        <div class="display" style="font-size:64px;color:#1C1917;letter-spacing:-2px;line-height:1.1;">
+          Predict the<br>next token.
+        </div>
+        <div style="font-size:22px;color:#44403C;margin-top:20px;line-height:1.6;max-width:680px;">
+          Solved across all of human writing — grammar,
+          logic, facts, and code all help prediction.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PHASE C — "Self-supervised → Base Model" (appears ~108s, fades ~127s) -->
+    <div id="s3-pc" style="position:absolute;top:170px;left:0;right:0;opacity:0;">
+
+      <!-- Left -->
+      <div style="position:absolute;top:0;left:120px;width:780px;">
+        <div class="tag" style="margin-bottom:14px;">How it scales</div>
+        <div class="display" style="font-size:56px;color:#202E4A;margin-bottom:16px;">
+          Self-supervised learning
+        </div>
+        <div style="font-size:22px;color:#44403C;line-height:1.65;">
+          No human labels required.<br>
+          The label is always the next word — already in the text.<br>
+          That is why pre-training can scale so aggressively.
+        </div>
+      </div>
+
+      <!-- Right: Base model callout -->
+      <div style="position:absolute;top:0;left:1020px;width:780px;
+                  padding:44px 52px;background:#fff;border:3.5px solid #FEFB41;
+                  border-radius:8px;box-shadow:5px 5px 0 rgba(254,251,65,0.30);">
+        <div class="clabel">Result</div>
+        <div class="display" style="font-size:54px;color:#1C1917;margin-bottom:16px;">Base Model</div>
+        <div style="font-size:21px;color:#44403C;line-height:1.65;">
+          Powerful text predictor.<br>
+          No goal. No safety properties.<br>
+          <strong>Not a product — a starting point.</strong>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PHASE D — "The Moat" (appears ~128s) -->
+    <div id="s3-pd" style="position:absolute;top:170px;left:0;right:0;opacity:0;">
+
+      <div style="position:absolute;top:0;left:120px;">
+        <div class="tag" style="margin-bottom:16px;">The Compute Cost</div>
+        <div class="display" style="font-size:100px;color:#1C1917;letter-spacing:-3px;">$10M – $100M+</div>
+        <div style="font-size:28px;color:#44403C;margin-top:20px;line-height:1.6;">
+          Months of GPU time. This is the moat separating<br>
+          a handful of labs from everyone else.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       SCENE 4 — INSTRUCTION TUNING & RLHF  (148–195s)
+       3 sub-phases — max 4 elements at peak
+  ══════════════════════════════════════════════════ -->
+  <div id="s4" class="scene">
+
+    <div id="s4-title" class="scene-title" style="opacity:0;">Phase 2 — Instruction Tuning &amp; RLHF</div>
+    <svg id="s4-usvg" viewBox="0 0 800 16"
+         style="position:absolute;top:118px;left:120px;width:800px;height:16px;">
+      <path id="s4-uline" d="M4,12 L796,8" stroke="#FEFB41" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="800" stroke-dashoffset="800"/>
+    </svg>
+
+    <!-- PHASE A — Instruction tuning definition (148-156s) -->
+    <div id="s4-pa" style="position:absolute;top:170px;left:0;right:0;opacity:0;">
+
+      <div style="position:absolute;top:0;left:120px;right:120px;
+                  padding:52px 64px;background:#fff;border:3.5px solid #202E4A;
+                  border-radius:8px;box-shadow:5px 5px 0 rgba(32,46,74,0.15);">
+        <div class="clabel">Making the base model useful</div>
+        <div class="display" style="font-size:56px;color:#202E4A;margin-bottom:18px;">Instruction Tuning</div>
+        <div style="font-size:26px;color:#44403C;line-height:1.65;">
+          Training on examples of human instructions paired with high-quality responses.<br>
+          The model learns to <strong>follow directives</strong> — not just complete text.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PHASE B — RLHF 3 steps (157-174s) -->
+    <div id="s4-pb" style="position:absolute;top:170px;left:0;right:0;opacity:0;">
+
+      <div style="position:absolute;top:0;left:120px;">
+        <div class="tag" style="margin-bottom:12px;">Critical Variant</div>
+        <div class="display" style="font-size:52px;color:#1C1917;margin-bottom:36px;">
+          RLHF — Reinforcement Learning from Human Feedback
+        </div>
+      </div>
+
+      <div id="s4-step1" style="position:absolute;top:136px;left:120px;right:120px;
+                                 display:flex;align-items:flex-start;gap:24px;opacity:0;">
+        <div style="width:52px;height:52px;border-radius:50%;background:#FEFB41;flex-shrink:0;
+                    display:flex;align-items:center;justify-content:center;">
+          <span class="display" style="font-size:22px;color:#1C1917;">1</span>
+        </div>
+        <div>
+          <div class="display" style="font-size:30px;color:#1C1917;margin-bottom:4px;">
+            Human raters compare two outputs and pick the better one
+          </div>
+          <div style="font-size:18px;color:#78716C;">Repeat at scale.</div>
+        </div>
+      </div>
+
+      <div id="s4-step2" style="position:absolute;top:256px;left:120px;right:120px;
+                                 display:flex;align-items:flex-start;gap:24px;opacity:0;">
+        <div style="width:52px;height:52px;border-radius:50%;background:#FEFB41;flex-shrink:0;
+                    display:flex;align-items:center;justify-content:center;">
+          <span class="display" style="font-size:22px;color:#1C1917;">2</span>
+        </div>
+        <div>
+          <div class="display" style="font-size:30px;color:#1C1917;margin-bottom:4px;">
+            A reward model learns to predict those preferences
+          </div>
+          <div style="font-size:18px;color:#78716C;">A separate model trained on the human ratings.</div>
+        </div>
+      </div>
+
+      <div id="s4-step3" style="position:absolute;top:376px;left:120px;right:120px;
+                                 display:flex;align-items:flex-start;gap:24px;opacity:0;">
+        <div style="width:52px;height:52px;border-radius:50%;background:#FEFB41;flex-shrink:0;
+                    display:flex;align-items:center;justify-content:center;">
+          <span class="display" style="font-size:22px;color:#1C1917;">3</span>
+        </div>
+        <div>
+          <div class="display" style="font-size:30px;color:#1C1917;margin-bottom:4px;">
+            The main model is optimized to maximize that reward
+          </div>
+          <div style="font-size:18px;color:#78716C;">Reinforcement learning shapes the model toward preferred outputs.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PHASE C — Implications (175-195s) -->
+    <div id="s4-pc" style="position:absolute;top:170px;left:0;right:0;opacity:0;">
+
+      <!-- Left: ChatGPT callout -->
+      <div style="position:absolute;top:0;left:120px;width:740px;
+                  padding:44px 52px;background:#fff;border:3.5px solid #FEFB41;
+                  border-radius:8px;box-shadow:5px 5px 0 rgba(254,251,65,0.30);">
+        <div class="clabel">Why it mattered</div>
+        <div class="display" style="font-size:44px;color:#1C1917;margin-bottom:14px;">
+          ChatGPT felt different.
+        </div>
+        <div style="font-size:20px;color:#44403C;line-height:1.65;">
+          Not just more capable — shaped toward outputs humans actually prefer.
+          A <strong>different optimization target</strong> than raw prediction.
+        </div>
+      </div>
+
+      <!-- Right: Constraint -->
+      <div style="position:absolute;top:0;left:980px;width:820px;
+                  padding:44px 52px;background:#fff;border:3.5px solid #D0D0D0;
+                  border-radius:8px;box-shadow:5px 5px 0 rgba(0,0,0,0.06);">
+        <div class="clabel">Key Constraint</div>
+        <div class="display" style="font-size:38px;color:#1C1917;margin-bottom:14px;">
+          Behavior, not knowledge.
+        </div>
+        <div style="font-size:20px;color:#44403C;line-height:1.65;">
+          Fine-tuning shapes how the model responds.<br>
+          To give it new knowledge: retrain it —<br>
+          or inject it at inference time via <span class="hl hl-yellow"
+          style="color:#1C1917;font-weight:600;">RAG</span>.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       SCENE 5 — ALIGNMENT  (198–232s)
+       2 sub-phases — max 4 elements at peak
+  ══════════════════════════════════════════════════ -->
+  <div id="s5" class="scene">
+
+    <div id="s5-title" class="scene-title" style="opacity:0;">Phase 3 — Alignment</div>
+    <svg id="s5-usvg" viewBox="0 0 440 16"
+         style="position:absolute;top:118px;left:120px;width:440px;height:16px;">
+      <path id="s5-uline" d="M4,12 L436,8" stroke="#FEFB41" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="440" stroke-dashoffset="440"/>
+    </svg>
+
+    <!-- Goal statement -->
+    <div id="s5-goal" class="display"
+         style="position:absolute;top:175px;left:120px;font-size:56px;color:#202E4A;opacity:0;">
+      Makes the model safe and honest.
+    </div>
+
+    <!-- PHASE A — Two method panels (198-210s) -->
+    <div id="s5-pa" style="position:absolute;top:280px;left:0;right:0;opacity:0;">
+
+      <div style="position:absolute;top:0;left:120px;width:800px;padding:40px 48px;
+                  background:#fff;border:3.5px solid #000;border-radius:8px;
+                  box-shadow:5px 5px 0 rgba(0,0,0,0.10);">
+        <div class="clabel">Layer 1</div>
+        <div class="display" style="font-size:36px;color:#1C1917;margin-bottom:10px;">Hard Content Filtering</div>
+        <div style="font-size:19px;color:#44403C;line-height:1.6;">
+          Rule-based guardrails — certain categories blocked regardless of framing.
+        </div>
+      </div>
+
+      <div style="position:absolute;top:0;left:1000px;width:800px;padding:40px 48px;
+                  background:#fff;border:3.5px solid #000;border-radius:8px;
+                  box-shadow:5px 5px 0 rgba(0,0,0,0.10);">
+        <div class="clabel">Layer 2</div>
+        <div class="display" style="font-size:36px;color:#1C1917;margin-bottom:10px;">Preference-based Tuning</div>
+        <div style="font-size:19px;color:#44403C;line-height:1.6;">
+          Teaches the model to be helpful without being harmful.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PHASE B — CAI + Over-refusal (210-232s) -->
+    <div id="s5-pb" style="position:absolute;top:280px;left:0;right:0;opacity:0;">
+
+      <div style="position:absolute;top:0;left:120px;width:820px;padding:44px 52px;
+                  background:#fff;border:3.5px solid #202E4A;border-radius:8px;
+                  box-shadow:5px 5px 0 rgba(32,46,74,0.15);">
+        <div class="clabel">Anthropic's Approach</div>
+        <div class="display" style="font-size:42px;color:#202E4A;margin-bottom:12px;">Constitutional AI</div>
+        <div style="font-size:20px;color:#44403C;line-height:1.65;">
+          The model critiques and revises its own outputs against a written set of principles.
+          Less dependence on continuous human feedback.
+        </div>
+      </div>
+
+      <div style="position:absolute;top:0;left:1020px;width:780px;padding:44px 52px;
+                  background:#fff;border:3.5px solid #DC2626;border-radius:8px;
+                  box-shadow:5px 5px 0 rgba(220,38,38,0.18);">
+        <div class="clabel" style="color:#DC2626;">Practical Tradeoff</div>
+        <div class="display" style="font-size:52px;color:#DC2626;margin-bottom:12px;">Over-refusal</div>
+        <div style="font-size:20px;color:#44403C;line-height:1.65;">
+          Declining legitimate requests because they superficially resemble harmful ones.
+          Knowing this shapes your prompt strategy.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       SCENE 6 — KNOWLEDGE CUTOFF  (235–280s)
+       2 sub-phases — max 5 elements at peak
+  ══════════════════════════════════════════════════ -->
+  <div id="s6" class="scene">
+
+    <div id="s6-title" class="scene-title" style="opacity:0;">The Knowledge Cutoff</div>
+    <svg id="s6-usvg" viewBox="0 0 540 16"
+         style="position:absolute;top:118px;left:120px;width:540px;height:16px;">
+      <path id="s6-uline" d="M4,12 L536,8" stroke="#FEFB41" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="540" stroke-dashoffset="540"/>
+    </svg>
+
+    <!-- PHASE A — Definition + timeline (235-252s) -->
+    <div id="s6-pa" style="position:absolute;top:170px;left:0;right:0;opacity:0;">
+
+      <div style="position:absolute;top:0;left:120px;right:120px;
+                  font-size:28px;color:#44403C;line-height:1.65;">
+        Pre-training happens <strong>once</strong> on a static dataset.
+        Every model has a date beyond which it has no information.
+        <span style="color:#1C1917;font-weight:600;">Anything after that date does not exist to the model</span> — unless you tell it.
+      </div>
+
+      <!-- Timeline visual -->
+      <div style="position:absolute;top:220px;left:120px;right:120px;">
+        <div id="s6-tltrack" style="position:relative;height:8px;background:#E7E5E4;
+                                    border-radius:4px;margin-bottom:16px;">
+          <div id="s6-tlbar" style="position:absolute;top:0;left:0;height:8px;width:0;
+                                    background:#1C1917;border-radius:4px;"></div>
+          <div id="s6-marker" style="position:absolute;top:-12px;left:72%;
+                                     transform:translateX(-50%);opacity:0;">
+            <div style="width:4px;height:56px;background:#DC2626;margin:0 auto;"></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#DC2626;
+                        font-weight:600;white-space:nowrap;text-align:center;margin-top:6px;">CUTOFF</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:52px;">
+          <span style="font-size:14px;color:#A8A29E;font-family:'JetBrains Mono',monospace;">Training data</span>
+          <span style="font-size:14px;color:#A8A29E;font-family:'JetBrains Mono',monospace;">Unknown →</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PHASE B — Volume≠Truth + implications (252-280s) -->
+    <div id="s6-pb" style="position:absolute;top:170px;left:0;right:0;opacity:0;">
+
+      <!-- Left: Volume ≠ Truth -->
+      <div style="position:absolute;top:0;left:120px;width:860px;padding:44px 52px;
+                  background:#fff;border:3.5px solid #202E4A;border-radius:8px;
+                  box-shadow:5px 5px 0 rgba(32,46,74,0.15);">
+        <div class="clabel">Why models hallucinate confidently</div>
+        <div class="display" style="font-size:52px;color:#202E4A;margin-bottom:14px;">
+          Volume ≠ Ground Truth
+        </div>
+        <div style="font-size:19px;color:#44403C;line-height:1.65;">
+          The model's certainty reflects how often something appears
+          in the corpus — not whether it is actually true.
+        </div>
+      </div>
+
+      <!-- Right: 3 builder implications -->
+      <div style="position:absolute;top:0;left:1060px;width:740px;">
+        <div class="tag" style="margin-bottom:20px;">For Builders</div>
+
+        <div id="s6-imp1" style="display:flex;gap:20px;align-items:flex-start;
+                                  margin-bottom:28px;opacity:0;">
+          <div style="width:10px;height:10px;background:#FEFB41;border-radius:50%;
+                      flex-shrink:0;margin-top:8px;"></div>
+          <div style="font-size:21px;color:#44403C;line-height:1.55;">
+            <strong>RAG</strong> — supplement frozen knowledge with live retrieval
+          </div>
+        </div>
+
+        <div id="s6-imp2" style="display:flex;gap:20px;align-items:flex-start;
+                                  margin-bottom:28px;opacity:0;">
+          <div style="width:10px;height:10px;background:#FEFB41;border-radius:50%;
+                      flex-shrink:0;margin-top:8px;"></div>
+          <div style="font-size:21px;color:#44403C;line-height:1.55;">
+            <strong>Tell the model today's date</strong> — it shifts behavior meaningfully
+          </div>
+        </div>
+
+        <div id="s6-imp3" style="display:flex;gap:20px;align-items:flex-start;opacity:0;">
+          <div style="width:10px;height:10px;background:#FEFB41;border-radius:50%;
+                      flex-shrink:0;margin-top:8px;"></div>
+          <div style="font-size:21px;color:#44403C;line-height:1.55;">
+            <strong>Recent cutoff ≠ better model</strong> — training quality matters more
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       SCENE 7 — CLOSE  (283–318s)
+       Sequential build — max 5 elements at peak
+  ══════════════════════════════════════════════════ -->
+  <div id="s7" class="scene">
+
+    <!-- Three recap cards -->
+    <div id="s7-hd" class="tag" style="position:absolute;top:72px;left:120px;opacity:0;">
+      Three phases
+    </div>
+
+    <div id="s7-c1" style="position:absolute;top:120px;left:120px;width:520px;
+                           padding:32px 40px;background:#fff;border:3.5px solid #000;
+                           border-radius:8px;box-shadow:5px 5px 0 rgba(0,0,0,0.10);opacity:0;">
+      <div class="mono" style="font-size:11px;color:#FEFB41;background:#000;display:inline-block;
+                                padding:3px 10px;border-radius:3px;margin-bottom:10px;
+                                letter-spacing:4px;text-transform:uppercase;">Phase 1</div>
+      <div class="display" style="font-size:34px;color:#1C1917;margin-bottom:6px;">Pre-Training</div>
+      <div style="font-size:17px;color:#78716C;">Builds the world model</div>
+    </div>
+
+    <div id="s7-c2" style="position:absolute;top:120px;left:680px;width:520px;
+                           padding:32px 40px;background:#fff;border:3.5px solid #000;
+                           border-radius:8px;box-shadow:5px 5px 0 rgba(0,0,0,0.10);opacity:0;">
+      <div class="mono" style="font-size:11px;color:#FEFB41;background:#000;display:inline-block;
+                                padding:3px 10px;border-radius:3px;margin-bottom:10px;
+                                letter-spacing:4px;text-transform:uppercase;">Phase 2</div>
+      <div class="display" style="font-size:34px;color:#1C1917;margin-bottom:6px;">Fine-Tuning</div>
+      <div style="font-size:17px;color:#78716C;">Shapes behavior</div>
+    </div>
+
+    <div id="s7-c3" style="position:absolute;top:120px;left:1240px;width:560px;
+                           padding:32px 40px;background:#fff;border:3.5px solid #000;
+                           border-radius:8px;box-shadow:5px 5px 0 rgba(0,0,0,0.10);opacity:0;">
+      <div class="mono" style="font-size:11px;color:#FEFB41;background:#000;display:inline-block;
+                                padding:3px 10px;border-radius:3px;margin-bottom:10px;
+                                letter-spacing:4px;text-transform:uppercase;">Phase 3</div>
+      <div class="display" style="font-size:34px;color:#1C1917;margin-bottom:6px;">Alignment</div>
+      <div style="font-size:17px;color:#78716C;">Safety &amp; preference</div>
+    </div>
+
+    <!-- Transformer line -->
+    <div id="s7-trans" style="position:absolute;top:330px;left:120px;right:120px;
+                              font-size:24px;color:#44403C;line-height:1.65;opacity:0;">
+      And underneath all of it —
+      a <span class="hl hl-yellow" style="color:#1C1917;font-weight:700;">transformer</span>,
+      learning from patterns in text at a scale that is genuinely hard to reason about intuitively.
+    </div>
+
+    <!-- Diagnostic callout -->
+    <div id="s7-diag" style="position:absolute;top:440px;left:120px;right:120px;
+                             padding:40px 52px;background:#fff;border:3.5px solid #FEFB41;
+                             border-radius:8px;box-shadow:5px 5px 0 rgba(254,251,65,0.30);opacity:0;">
+      <div style="font-size:21px;color:#1C1917;line-height:1.65;">
+        When a model <strong>hallucinates</strong>, <strong>refuses</strong>, or is <strong>inconsistent</strong>
+        — the root cause lives in one of these phases.
+        That diagnostic ability separates engineers who understand the stack
+        from those who are just prompting and hoping.
+      </div>
+    </div>
+
+    <!-- Next module teaser -->
+    <div id="s7-next" style="position:absolute;top:668px;left:120px;opacity:0;">
+      <div class="tag" style="color:#202E4A;margin-bottom:12px;">Next Module</div>
+      <div class="display" style="font-size:48px;color:#1C1917;line-height:1.15;">
+        Inside the Transformer —<br>
+        <span style="color:#78716C;font-size:44px;">How Attention Works &amp; Why the Context Window Is Everything</span>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- Gen Academy Logo Watermark — always visible -->
+  <div style="position:absolute;bottom:28px;right:28px;z-index:100;border-radius:6px;
+              padding:8px 14px;background:#000000;border:1px solid #333333;
+              display:flex;flex-direction:row;gap:10px;align-items:center;">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <path d="M14 4 C8 4 4 8.5 4 13.5 C4 17 6 19.5 8.5 21 L8.5 23 L19.5 23 L19.5 21 C22 19.5 24 17 24 13.5 C24 8.5 20 4 14 4 Z"
+            stroke="white" stroke-width="1.5" fill="none"/>
+      <line x1="9.5" y1="24.5" x2="18.5" y2="24.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="10.5" y1="26" x2="17.5" y2="26" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M10 13 C10 11 12 10 14 11 C16 10 18 11 18 13 C18 15 16 16 14 15.5 C12 16 10 15 10 13Z"
+            stroke="#FEFB41" stroke-width="1" fill="none"/>
+      <path d="M14 11 L14 15.5" stroke="#FEFB41" stroke-width="0.8"/>
+      <path d="M11.5 12 C11.5 12 12.5 13.5 14 13" stroke="#FEFB41" stroke-width="0.8" fill="none"/>
+      <path d="M16.5 12 C16.5 12 15.5 13.5 14 13" stroke="#FEFB41" stroke-width="0.8" fill="none"/>
+    </svg>
+    <div style="width:1px;height:28px;background:#FEFB41;"></div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <div style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;
+                  letter-spacing:0.15em;color:#FFFFFF;text-transform:uppercase;line-height:1;">
+        Gen Academy
+      </div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:8px;color:#FEFB41;
+                  letter-spacing:0.05em;line-height:1;">
+        AI Skills That Advance Careers.
+      </div>
+    </div>
+  </div>
+
+</div><!-- /#root -->
+
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+<script>
+  const tl = gsap.timeline({ paused: true });
+  const ft   = (el, f, t, pos) => tl.fromTo(el, f, t, pos);
+  const draw = (id, len, dur, pos) =>
+    tl.to(id, { strokeDashoffset: 0, duration: dur, ease: 'power2.inOut' }, pos);
+
+  // ─── SCENE 1 ──────────────────────────────────────────────────────────────
+  // SCENE 1
+  tl.to('#s1', { opacity: 1, duration: 0.01 }, 0);
+  ft('#s1-tag',  { opacity:0, y:-12 }, { opacity:1, y:0, duration:0.4 }, 0.0);
+  ft('#s1-h1',   { opacity:0, y:28  }, { opacity:1, y:0, duration:0.7, ease:'back.out(1.2)' }, 0.5);
+  ft('#s1-h2',   { opacity:0, y:18  }, { opacity:1, y:0, duration:0.5 }, 1.4);
+  draw('#s1-uline', 680, 0.8, 1.9);
+  ft('#s1-body', { opacity:0, y:16  }, { opacity:1, y:0, duration:0.6 }, 12.34);
+  tl.to('#s1', { opacity:0, duration:0.5 }, 23.27);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 23.57);
+  tl.to('#flash', { opacity:0, duration:0.07 }, 23.64);
+
+  // ─── SCENE 2 ──────────────────────────────────────────────────────────────
+  // SCENE 2
+  tl.to('#s2', { opacity: 1, duration: 0.01 }, 23.84);
+  ft('#s2-title', { opacity:0, y:18 }, { opacity:1, y:0, duration:0.5 }, 23.14);
+  draw('#s2-uline', 480, 0.7, 23.64);
+  ft('#s2-r1',  { opacity:0, x:-16 }, { opacity:1, x:0, duration:0.4 }, 26.06);
+  tl.to('#s2-d1', { opacity:1, duration:0.3 }, 26.56);
+  ft('#s2-r2',  { opacity:0, x:-16 }, { opacity:1, x:0, duration:0.4 }, 29.18);
+  tl.to('#s2-d2', { opacity:1, duration:0.3 }, 29.68);
+  ft('#s2-r3',  { opacity:0, x:-16 }, { opacity:1, x:0, duration:0.4 }, 36.24);
+  tl.to('#s2-d3', { opacity:1, duration:0.3 }, 36.74);
+  ft('#s2-r4',  { opacity:0, x:-16 }, { opacity:1, x:0, duration:0.4 }, 38.08);
+  tl.to('#s2-d4', { opacity:1, duration:0.3 }, 38.58);
+  ft('#s2-r5',  { opacity:0, x:-16 }, { opacity:1, x:0, duration:0.4 }, 41.4);
+  tl.to('#s2-d5', { opacity:1, duration:0.3 }, 41.9);
+  ft('#s2-r6',  { opacity:0, x:-16 }, { opacity:1, x:0, duration:0.4 }, 44.02);
+  tl.to('#s2-d6', { opacity:1, duration:0.3 }, 44.52);
+  ft('#s2-r7',  { opacity:0, x:-16 }, { opacity:1, x:0, duration:0.4 }, 47.72);
+  ft('#s2-note', { opacity:0, y:10 }, { opacity:1, y:0, duration:0.5 }, 55.68);
+  tl.to('#s2', { opacity:0, duration:0.5 }, 61.59);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 61.89);
+  tl.to('#flash', { opacity:0, duration:0.07 }, 61.96);
+
+  // ─── SCENE 3 ──────────────────────────────────────────────────────────────
+  // SCENE 3
+  tl.to('#s3', { opacity: 1, duration: 0.01 }, 62.16);
+  ft('#s3-title', { opacity:0, y:18 }, { opacity:1, y:0, duration:0.5 }, 61.54);
+  draw('#s3-uline', 540, 0.7, 62.04);
+  // Phase A — Transformer (appears at s03_pa, exits before s03_pb)
+  ft('#s3-pa', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 69.58);
+  tl.to('#s3-pa', { opacity:0, duration:0.4 }, 88.72);
+  // Phase B — Corpus + Task (s03_pb … s03_pc)
+  ft('#s3-pb', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 89.02);
+  tl.to('#s3-pb', { opacity:0, duration:0.4 }, 116.62);
+  // Phase C — Self-supervised + Base model (s03_pc … s03_pd)
+  ft('#s3-pc', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 116.92);
+  tl.to('#s3-pc', { opacity:0, duration:0.4 }, 137.54);
+  // Phase D — Compute cost (s03_pd …)
+  ft('#s3-pd', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 137.84);
+  tl.to('#s3', { opacity:0, duration:0.5 }, 151.9);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 152.2);
+  tl.to('#flash', { opacity:0, duration:0.07 }, 152.27);
+
+  // ─── SCENE 4 ──────────────────────────────────────────────────────────────
+  // SCENE 4
+  tl.to('#s4', { opacity: 1, duration: 0.01 }, 152.47);
+  ft('#s4-title', { opacity:0, y:18 }, { opacity:1, y:0, duration:0.5 }, 151.98);
+  draw('#s4-uline', 800, 0.7, 152.48);
+  // Phase A — Instruction tuning card
+  ft('#s4-pa', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 152.78);
+  tl.to('#s4-pa', { opacity:0, duration:0.4 }, 167.12);
+  // Phase B — RLHF 3 steps (s04_rlhf … s04_pc)
+  ft('#s4-pb',    { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 167.42);
+  ft('#s4-step1', { opacity:0, x:-16 }, { opacity:1, x:0, duration:0.4 }, 172.98);
+  ft('#s4-step2', { opacity:0, x:-16 }, { opacity:1, x:0, duration:0.4 }, 176.9);
+  ft('#s4-step3', { opacity:0, x:-16 }, { opacity:1, x:0, duration:0.4 }, 180.48);
+  tl.to('#s4-pb', { opacity:0, duration:0.4 }, 184.38);
+  // Phase C — Implications (s04_pc …)
+  ft('#s4-pc', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 184.68);
+  tl.to('#s4', { opacity:0, duration:0.5 }, 213.5);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 213.8);
+  tl.to('#flash', { opacity:0, duration:0.07 }, 213.87);
+
+  // ─── SCENE 5 ──────────────────────────────────────────────────────────────
+  // SCENE 5
+  tl.to('#s5', { opacity: 1, duration: 0.01 }, 214.07);
+  ft('#s5-title', { opacity:0, y:18 }, { opacity:1, y:0, duration:0.5 }, 213.14);
+  draw('#s5-uline', 440, 0.7, 213.64);
+  ft('#s5-goal', { opacity:0, y:14 }, { opacity:1, y:0, duration:0.5 }, 213.94);
+  // Phase A — Two method panels
+  ft('#s5-pa', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 216.86);
+  tl.to('#s5-pa', { opacity:0, duration:0.4 }, 224.77);
+  // Phase B — CAI + Over-refusal
+  ft('#s5-pb', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 225.07);
+  tl.to('#s5', { opacity:0, duration:0.5 }, 254.56);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 254.86);
+  tl.to('#flash', { opacity:0, duration:0.07 }, 254.93);
+
+  // ─── SCENE 6 ──────────────────────────────────────────────────────────────
+  // SCENE 6
+  tl.to('#s6', { opacity: 1, duration: 0.01 }, 255.13);
+  ft('#s6-title', { opacity:0, y:18 }, { opacity:1, y:0, duration:0.5 }, 254.44);
+  draw('#s6-uline', 540, 0.7, 254.94);
+  // Phase A — Definition + timeline
+  ft('#s6-pa', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 255.24);
+  tl.to('#s6-tlbar',  { width:'72%', duration:1.4, ease:'power2.out' }, 263.82);
+  ft('#s6-marker', { opacity:0 }, { opacity:1, duration:0.4 }, 265.32);
+  tl.to('#s6-pa', { opacity:0, duration:0.4 }, 267.92);
+  // Phase B — Volume≠Truth + implications
+  ft('#s6-pb',   { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 268.22);
+  ft('#s6-imp1', { opacity:0, x:16 }, { opacity:1, x:0, duration:0.4 }, 286.65);
+  ft('#s6-imp2', { opacity:0, x:16 }, { opacity:1, x:0, duration:0.4 }, 290.78);
+  ft('#s6-imp3', { opacity:0, x:16 }, { opacity:1, x:0, duration:0.4 }, 294.14);
+  tl.to('#s6', { opacity:0, duration:0.5 }, 302.04);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 302.34);
+  tl.to('#flash', { opacity:0, duration:0.07 }, 302.41);
+
+  // ─── SCENE 7 ──────────────────────────────────────────────────────────────
+  // SCENE 7
+  tl.to('#s7', { opacity: 1, duration: 0.01 }, 302.61);
+  ft('#s7-hd', { opacity:0, y:-10 }, { opacity:1, y:0, duration:0.4 }, 301.54);
+  ft('#s7-c1', { opacity:0, y:18  }, { opacity:1, y:0, duration:0.5 }, 301.74);
+  ft('#s7-c2', { opacity:0, y:18  }, { opacity:1, y:0, duration:0.5 }, 305.72);
+  ft('#s7-c3', { opacity:0, y:18  }, { opacity:1, y:0, duration:0.5 }, 307.72);
+  ft('#s7-trans', { opacity:0, y:12 }, { opacity:1, y:0, duration:0.5 }, 310.42);
+  ft('#s7-diag',  { opacity:0, y:12 }, { opacity:1, y:0, duration:0.5 }, 319.52);
+  ft('#s7-next',  { opacity:0, y:16 }, { opacity:1, y:0, duration:0.6 }, 334.74);
+  tl.to('#s7', { opacity:0, duration:0.8 }, 346.99);
+
+  // Duration marker
+  tl.set({}, {}, 347.49);
+
+  window.__timelines = window.__timelines || {};
+  window.__timelines['how-ai-is-trained'] = tl;
+</script>
+</body>
+</html>

@@ -1,37 +1,56 @@
 ---
 name: tts-pipeline
-description: End-to-end pipeline for generating section-by-section voiceover with Qwen3-TTS voice cloning and embedding it into a HyperFrames composition
+description: End-to-end beat-granular TTS pipeline with Whisper word-level alignment for perfectly synced HyperFrames narration
 metadata:
-  tags: tts, voiceover, audio, qwen, voice-clone, pipeline, narration, timestamps
+  tags: tts, voiceover, audio, sync, beats, pipeline, narration, timestamps, whisper, alignment
 ---
 
 ## Overview
 
-Every HyperFrames composition that needs narration follows this pipeline:
+Every HyperFrames composition that includes narration **must** use the beat-granular + Whisper pipeline.
+Stitch-only timing is never acceptable as the final output — Whisper alignment is the default, not an option.
 
 ```
-SCRIPT_CLEAN.md
-      ↓
-Qwen3-TTS (voice cloned from reference recording)
-      ↓  (one audio file per script section)
-Stitch sections + silence gaps → narration.wav
-      ↓
-timestamps.json (actual start/end per section)
-      ↓
-Embed <audio> into index.html
-      ↓
-npx hyperframes render
+SCRIPT.md  →  define BEATS (one per visual cue)
+                  ↓
+        TTS: one clip per beat  (npx hyperframes tts)
+                  ↓
+     Stitch clips with adelay → narration.wav
+                  ↓
+     openai-whisper: word-level timestamps on narration.wav
+     (install: pip install openai-whisper)
+                  ↓
+     _find_phrase() maps each BEAT → exact speech start time
+                  ↓
+     beat_timestamps.json  (whisper-aligned start per beat)
+                  ↓
+     make_gsap() rewrites entire <script> in index.html
+     every animation anchored to real speech timing
+                  ↓
+     npx hyperframes render
 ```
 
-No manual audio editing. No re-recording. Runs entirely from the notebook.
+**Why Whisper is required:** TTS speaking rate varies across sentences, clauses, and punctuation. Even with perfectly split beat clips, stitch math gives you the start-of-clip time, not the start-of-speech. Whisper detects the actual moment the narrator says the first word of each beat and pins the animation to that exact timestamp. Without it, every animation can appear 1–4 seconds early.
 
 ---
 
-## Prerequisites
+## Why earlier approaches failed
 
-- `qwen_tts`, `librosa`, `soundfile`, `numpy` installed in the Python environment
-- A reference voice recording (`.m4a`, `.wav`, or `.mp3`) from the presenter
-- A `SCRIPT_CLEAN.md` — narration-only, no symbols, no contractions
+| Approach | Failure mode |
+|---|---|
+| One TTS clip per scene, hand-estimated beat times | Drifts 3–8s per scene. Compounds across 5+ elements. |
+| Beat-granular TTS, stitch-only timestamps | Beat start = clip start, not speech start. 0.5–2s early per beat. |
+| Beat-granular TTS + Whisper alignment | Exact. The animation fires when the narrator says the word. ✓ |
+
+---
+
+## Required installation
+
+```bash
+pip install openai-whisper
+```
+
+PyTorch must be available (`pip install torch` if not). Whisper `base` model is sufficient for word-level alignment.
 
 ---
 
@@ -39,226 +58,391 @@ No manual audio editing. No re-recording. Runs entirely from the notebook.
 
 ```
 <composition>/
-  index.html
-  SCRIPT.md           ← annotated script with timestamps + beats
-  SCRIPT_CLEAN.md     ← TTS-ready script (no symbols, contractions expanded)
+  index.html              ← GSAP rewritten by build_narration.py
+  SCRIPT.md               ← annotated script with beat markers
+  SCRIPT_CLEAN.md         ← full narration text (TTS-clean, for reference)
   audio/
-    01_<section>.wav  ← individual section audio
-    02_<section>.wav
-    ...
-    narration.wav     ← final stitched voiceover
-    timestamps.json   ← actual start/end times per section
+    build_narration.py    ← beat-granular TTS + Whisper aligner + GSAP patcher
+    narration.wav         ← final stitched voiceover
+    narration.json        ← Whisper word-level output (cached)
+    beat_timestamps.json  ← whisper-aligned start/duration per beat
+    _tmp_beats/           ← per-beat wav files (deleted after build)
 ```
 
 ---
 
-## Notebook structure
+## BEATS definition
 
-Every composition's TTS notebook (`tts.ipynb`) has exactly these cells in order:
-
-### Cell 1 — Model loading
+A beat is the smallest unit of narration that corresponds to one visual state change.
 
 ```python
-from qwen_tts import Qwen3TTSModel
-import librosa
-import numpy as np
+BEATS = [
+    # text = exactly what narrator says when that element should appear
+    # Must match SCRIPT_CLEAN.md verbatim — same words, no contractions, no symbols
 
-model = Qwen3TTSModel.from_pretrained(
-    "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
-    device_map="auto"
-)
+    {"id": "s01_intro", "scene": 1,
+     "text": "Nearly every major language model in production today is built on a transformer."},
 
-def generate_with_wpm(model, text, ref_audio, ref_text, target_wpm=160):
-    wavs, sr = model.generate_voice_clone(
-        ref_audio=ref_audio,
-        ref_text=ref_text,
-        text=text
-    )
-    wav = wavs[0]
-    word_count = len(text.strip().split())
-    duration_seconds = len(wav) / sr
-    current_wpm = (word_count / duration_seconds) * 60 if duration_seconds > 0 else 0
-    print(f"Original WPM: {current_wpm:.2f}")
-    if current_wpm > 0:
-        speed_factor = target_wpm / current_wpm
-        print(f"Applying speed factor: {speed_factor:.2f} to reach {target_wpm} WPM")
-        wav = librosa.effects.time_stretch(wav, rate=speed_factor)
-    return [wav], sr
-```
+    {"id": "s01_body", "scene": 1,
+     "text": "GPT, Claude, Gemini, Llama. If you are making decisions about AI infrastructure..."},
 
-### Cell 2 — Reference voice
+    # Between scenes: SCENE_GAP = 1.5s silence inserted automatically
+    # Within a scene: clips concatenate directly (0 gap)
 
-```python
-# Points to the presenter's reference recording.
-# This is what the model clones — pronunciation, tone, energy.
-ReferenceAudio = "Text-to-speech-model/yuva'recording.m4a"
-ReferenceText  = """<paste the voice training passage here>"""
-```
+    {"id": "s03_sa", "scene": 3,
+     "text": "First, self-attention. Tokens exchange information across the sequence."},
 
-The `ReferenceText` must match the actual spoken content of the recording as closely as possible. Use the voice training passage from `Text-to-speech-model/` for this.
-
-### Cell 3 — Script sections
-
-```python
-SILENCE_GAP_SECONDS = 0.5   # breathing room between scenes
-TARGET_WPM          = 160   # The Gen Academy standard pace
-
-SECTIONS = [
-    { "id": "01_<scene>", "label": "<Scene Name>", "text": "<TTS-ready narration>" },
-    { "id": "02_<scene>", "label": "<Scene Name>", "text": "<TTS-ready narration>" },
-    # ...one entry per scene in the composition
+    {"id": "s03_ff", "scene": 3,
+     "text": "Second, a feed-forward network. Two linear transformations applied independently."},
 ]
 ```
 
-**Rules for section text:**
-- Copy directly from `SCRIPT_CLEAN.md`
-- No dashes, asterisks, quotes, or markdown
-- No contractions — `it is`, `do not`, `you are` etc.
-- Each section = one continuous spoken segment (no mid-section scene cuts)
+**Beat granularity rules:**
+- One beat per sentence or clause that triggers a new element
+- One beat per bullet point on summary slides
+- Never combine two unrelated visuals into one beat — you lose sync on the second element
+- Minimum text: ~5 words (TTS handles short clips fine)
 
-**`id` naming:** zero-padded two-digit prefix + snake_case label, e.g. `03_base_prompt`
+---
 
-### Cell 4 — Generate, stitch, save timestamps
+## build_narration.py structure (canonical template)
+
+Every composition must have a `build_narration.py` with exactly these sections:
+
+### 1. Constants
 
 ```python
-import os, json, numpy as np, soundfile as sf
+VOICE      = "bm_george"
+SCENE_GAP  = 1.5   # seconds of silence between scenes
+AUDIO_DIR  = os.path.dirname(os.path.abspath(__file__))
+COMP_DIR   = os.path.dirname(AUDIO_DIR)
+HTML_PATH  = os.path.join(COMP_DIR, "index.html")
+TMP_DIR    = os.path.join(AUDIO_DIR, "_tmp_beats")
+OUTPUT_WAV = os.path.join(AUDIO_DIR, "narration.wav")
+TS_PATH    = os.path.join(AUDIO_DIR, "beat_timestamps.json")
+WX_JSON    = os.path.join(AUDIO_DIR, "narration.json")
+```
 
-OUTPUT_DIR = "src/hyperframes/<CompositionName>/audio"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+### 2. Step 1 — TTS (one clip per beat)
 
-section_wavs = []
-section_sample_rate = None
-timestamps = []
-cursor = 0.0
+```python
+def build_beat_wavs():
+    os.makedirs(TMP_DIR, exist_ok=True)
+    wavs = []
+    for i, beat in enumerate(BEATS):
+        wav = os.path.join(TMP_DIR, f"{beat['id']}.wav")
+        txt = wav.replace(".wav", ".txt")
+        with open(txt, "w") as f:
+            f.write(beat["text"])
+        run(["npx", "--yes", "hyperframes", "tts",
+             "--file", txt, "--output", wav, "--voice", VOICE])
+        wavs.append(wav)
+    return wavs
+```
 
-for section in SECTIONS:
-    print(f"\n[{section['id']}] {section['label']}")
-    wavs, sr = generate_with_wpm(
-        model,
-        text=section["text"],
-        ref_audio=ReferenceAudio,
-        ref_text=ReferenceText,
-        target_wpm=TARGET_WPM
+### 3. Step 2 — Stitch with adelay
+
+```python
+def stitch(beat_wavs):
+    beat_starts = {}
+    beat_durs   = {}
+    t = 0.0
+    prev_scene = None
+
+    for beat, wav in zip(BEATS, beat_wavs):
+        if prev_scene is not None and beat["scene"] != prev_scene:
+            t = round(t + SCENE_GAP, 3)
+        beat_starts[beat["id"]] = round(t, 3)
+        dur = get_duration(wav)
+        beat_durs[beat["id"]] = round(dur, 3)
+        t = round(t + dur, 3)
+        prev_scene = beat["scene"]
+
+    total_dur = round(t + 1.5, 2)
+
+    inputs, filter_parts, mix_labels = [], [], []
+    for idx, (beat, wav) in enumerate(zip(BEATS, beat_wavs)):
+        inputs += ["-i", wav]
+        ms  = int(beat_starts[beat["id"]] * 1000)
+        lbl = f"[a{idx}]"
+        filter_parts.append(f"[{idx}]adelay={ms}|{ms}{lbl}")
+        mix_labels.append(lbl)
+
+    n  = len(BEATS)
+    fc = ";".join(filter_parts)
+    fc += f";{''.join(mix_labels)}amix=inputs={n}:normalize=0:dropout_transition=0[out]"
+
+    run(["ffmpeg", "-y"] + inputs + [
+        "-filter_complex", fc, "-map", "[out]", "-t", str(total_dur), OUTPUT_WAV,
+    ])
+    return beat_starts, beat_durs
+```
+
+### 4. Step 3 — Whisper alignment (DEFAULT — always run)
+
+```python
+def run_whisper():
+    """
+    Word-level alignment using openai-whisper.
+    This is the default sync method — always run before patching GSAP.
+    Install: pip install openai-whisper
+    """
+    try:
+        import whisper
+    except ImportError:
+        print("  ✗  openai-whisper not installed — run: pip install openai-whisper")
+        print("     Whisper alignment is required for correct sync.")
+        print("     Falling back to stitch times (SYNC WILL BE APPROXIMATE).\n")
+        return None
+
+    print("  Loading whisper model (base) …")
+    model  = whisper.load_model("base")
+    result = model.transcribe(OUTPUT_WAV, language="en", word_timestamps=True)
+
+    words = []
+    for seg in result.get("segments", []):
+        for w in seg.get("words", []):
+            if "start" in w and "end" in w:
+                words.append({
+                    "word":  w["word"].strip(),
+                    "start": float(w["start"]),
+                    "end":   float(w["end"]),
+                })
+
+    with open(WX_JSON, "w") as f:
+        json.dump({"segments": result.get("segments", [])}, f)
+
+    print(f"  ✓  Whisper aligned {len(words)} words\n")
+    return words
+
+
+def _load_cached_words():
+    """Load word list from narration.json cached by a prior Whisper run."""
+    if not os.path.exists(WX_JSON):
+        return []
+    with open(WX_JSON) as f:
+        data = json.load(f)
+    words = []
+    for seg in data.get("segments", []):
+        for w in seg.get("words", []):
+            if "start" in w and "end" in w:
+                words.append({
+                    "word":  w["word"].strip(),
+                    "start": float(w["start"]),
+                    "end":   float(w["end"]),
+                })
+    return words
+
+
+def _norm(text):
+    text = unicodedata.normalize("NFD", text.lower())
+    text = re.sub(r"[^\w\s]", " ", text)
+    return [w for w in text.split() if w]
+
+
+def _find_phrase(words, phrase, start_idx=0):
+    """Find first 4 words of phrase in word list, return speech start time."""
+    query     = _norm(phrase)[:4]
+    norm_list = [(_norm(w["word"])[0] if _norm(w["word"]) else "__") for w in words]
+    for i in range(start_idx, len(norm_list) - len(query) + 1):
+        if norm_list[i : i + len(query)] == query:
+            return words[i]["start"], i + len(query)
+    return None, start_idx
+
+
+def refine_with_whisper(beat_starts, beat_durs, words):
+    """Replace stitch-based times with Whisper word-level times."""
+    if not words:
+        return beat_starts, beat_durs
+    hits, misses, cursor = 0, 0, 0
+    for beat in BEATS:
+        t, cursor = _find_phrase(words, beat["text"], cursor)
+        if t is not None:
+            old = beat_starts[beat["id"]]
+            beat_starts[beat["id"]] = round(t, 3)
+            hits += 1
+            drift = round(t - old, 3)
+            flag  = f"  Δ{drift:+.2f}s" if abs(drift) > 0.1 else ""
+            print(f"  ✓  {beat['id']:20s}  {old:.2f}s → {t:.2f}s{flag}")
+        else:
+            misses += 1
+            print(f"  ✗  {beat['id']:20s}  not found — keeping {beat_starts[beat['id']]:.2f}s")
+    print(f"\n  Whisper: {hits}/{hits+misses} beats aligned\n")
+    return beat_starts, beat_durs
+```
+
+### 5. Step 4 — make_gsap(T, D)
+
+```python
+def make_gsap(T, D):
+    def at(bid, offset=0.0): return round(T.get(bid, 0.0) + offset, 2)
+    def end(bid):            return round(T.get(bid, 0.0) + D.get(bid, 3.0), 2)
+    def out(bid, tail=1.2):  return round(end(bid) + tail, 2)
+    def fi(bid, tail=1.2):   return round(out(bid, tail) + 0.3, 2)
+    def fo(bid, tail=1.2):   return round(fi(bid, tail) + 0.07, 2)
+    def ns(bid, tail=1.2):   return round(fo(bid, tail) + 0.2, 2)
+    # ns() = out + 0.57s — next scene starts 0.57s after current scene begins fading.
+    # Flash fires at fi() (mid-fade), covering the transition visually.
+
+    total = round(out('last_beat_id', tail=3.0), 2)
+
+    js = f"""
+  const tl = gsap.timeline({{ paused: true }});
+  const ft   = (el, f, t, pos) => tl.fromTo(el, f, t, pos);
+  const draw = (id, len, dur, pos) =>
+    tl.to(id, {{ strokeDashoffset: 0, duration: dur, ease: 'power2.inOut' }}, pos);
+
+  // Scene 1
+  tl.to('#s1', {{ opacity: 1, duration: 0.01 }}, 0);
+  ft('#s1-title', {{opacity:0,y:28}}, {{opacity:1,y:0,duration:0.7}}, {at('s01_intro')});
+  // ... all beats anchored via at(), end(), ns()
+
+  tl.set({{}}, {{}}, {total});
+  window.__timelines = window.__timelines || {{}};
+  window.__timelines['composition-id'] = tl;"""
+    return js
+```
+
+### 6. build() entry point
+
+```python
+def build():
+    print("Step 1 — TTS …")
+    beat_wavs = build_beat_wavs()
+
+    print("Step 2 — Stitch (adelay) …")
+    beat_starts, beat_durs = stitch(beat_wavs)
+
+    print("Step 3 — Whisper alignment …")
+    words   = run_whisper()          # always attempt
+    aligned = words is not None
+    if aligned:
+        beat_starts, beat_durs = refine_with_whisper(beat_starts, beat_durs, words)
+
+    total_dur = round(
+        max(beat_starts[b["id"]] + beat_durs[b["id"]] for b in BEATS) + 3.0, 2
     )
-    wav = wavs[0]
-    section_sample_rate = sr
-    duration = len(wav) / sr
+    ts = {
+        "total_duration":   total_dur,
+        "whisper_aligned":  aligned,
+        "beats": [{"id": b["id"], "scene": b["scene"],
+                   "start": beat_starts[b["id"]], "duration": beat_durs[b["id"]]}
+                  for b in BEATS],
+    }
+    with open(TS_PATH, "w") as f:
+        json.dump(ts, f, indent=2)
 
-    sf.write(os.path.join(OUTPUT_DIR, f"{section['id']}.wav"), wav, sr)
-    print(f"  Saved  ({duration:.2f}s)")
+    print("Step 4 — Rewriting GSAP …")
+    patch_html(beat_starts, beat_durs)
+    patch_preview(total_dur)
 
-    timestamps.append({
-        "id": section["id"], "label": section["label"],
-        "start": round(cursor, 3), "end": round(cursor + duration, 3),
-        "duration": round(duration, 3)
-    })
-    section_wavs.append(wav)
-    cursor += duration
+    shutil.rmtree(TMP_DIR, ignore_errors=True)
+    print("✓  Done.")
 
-    if section != SECTIONS[-1]:
-        silence = np.zeros(int(SILENCE_GAP_SECONDS * sr), dtype=wav.dtype)
-        section_wavs.append(silence)
-        cursor += SILENCE_GAP_SECONDS
 
-narration = np.concatenate(section_wavs)
-sf.write(os.path.join(OUTPUT_DIR, "narration.wav"), narration, section_sample_rate)
+def gsap_only():
+    """Re-patch from saved beat_timestamps.json + cached narration.json."""
+    with open(TS_PATH) as f:
+        ts = json.load(f)
+    T = {b["id"]: b["start"]    for b in ts["beats"]}
+    D = {b["id"]: b["duration"] for b in ts["beats"]}
 
-with open(os.path.join(OUTPUT_DIR, "timestamps.json"), "w") as f:
-    json.dump({
-        "total_duration": round(len(narration) / section_sample_rate, 3),
-        "sample_rate": section_sample_rate,
-        "sections": timestamps
-    }, f, indent=2)
+    cached = _load_cached_words()
+    if cached:
+        print(f"  Re-aligning from cached Whisper output ({len(cached)} words) …")
+        T, D = refine_with_whisper(T, D, cached)
 
-print(f"\nTotal: {len(narration)/section_sample_rate:.2f}s")
-for t in timestamps:
-    print(f"  {t['id']}  {t['start']:.2f}s → {t['end']:.2f}s")
+    patch_html(T, D)
+    patch_preview(ts["total_duration"])
+    print("✓  Done.")
 ```
 
-### Cell 5 — Embed audio into index.html
+---
+
+## Scene transition rules
 
 ```python
-import json
+# Correct order for every scene boundary:
+tl.to('#sN',    { opacity:0, duration:0.5 }, out('last_beat_of_sN'))
+tl.to('#flash', { opacity:1, duration:0.07 }, fi('last_beat_of_sN'))
+tl.to('#flash', { opacity:0, duration:0.07 }, fo('last_beat_of_sN'))
+tl.to('#sN+1',  { opacity:1, duration:0.01 }, ns('last_beat_of_sN'))
+# ns() is always AFTER the previous scene fully fades — no overlap possible.
+```
 
-HTML_PATH        = "src/hyperframes/<CompositionName>/index.html"
-TIMESTAMPS_PATH  = "src/hyperframes/<CompositionName>/audio/timestamps.json"
+Never hardcode scene start times. Always derive from `ns(last_beat_of_previous_scene)`.
 
-with open(TIMESTAMPS_PATH) as f:
-    ts_data = json.load(f)
+---
 
-with open(HTML_PATH) as f:
-    html = f.read()
+## Sub-phase wrappers (for long scenes)
 
-AUDIO_TAG = '''
-  <!-- NARRATION — generated by tts.ipynb -->
-  <audio id="vo"
-         class="clip"
-         src="audio/narration.wav"
-         data-start="0"
-         data-volume="1"
-         data-track-index="10">
-  </audio>
-'''
+For scenes with 4+ visual states, use sub-phase wrapper divs (`#s3-pa`, `#s3-pb`, …). Each phase fades out 0.3s before the next begins:
 
-if 'id="vo"' not in html:
-    html = html.replace('  <div id="flash">', AUDIO_TAG + '  <div id="flash">')
+```python
+s3_pa_out = round(at('s03_pb') - 0.3, 2)   # phase A exits just before phase B starts
+# ...
+ft('#s3-pa', {opacity:0,y:16}, {opacity:1,y:0,duration:0.5}, at('s03_pa'))
+tl.to('#s3-pa', {opacity:0, duration:0.4}, s3_pa_out)
+ft('#s3-pb', {opacity:0,y:16}, {opacity:1,y:0,duration:0.5}, at('s03_pb'))
+```
 
-with open(HTML_PATH, "w") as f:
-    f.write(html)
+Max ~4 elements visible simultaneously per frame.
 
-print("Audio embedded.")
-print("\nTimestamps — align GSAP scene starts to these:")
-for s in ts_data["sections"]:
-    print(f"  {s['label']:<25} {s['start']:>7.2f}s → {s['end']:>7.2f}s")
-print(f"\nRun: npx hyperframes render --output out/<CompositionName>.mp4")
+---
+
+## Running the pipeline
+
+```bash
+# Install Whisper (one-time)
+pip install openai-whisper
+
+# Full build: TTS + stitch + Whisper + patch GSAP
+python3 audio/build_narration.py
+
+# Re-patch GSAP only (re-uses cached narration.json from prior Whisper run)
+python3 audio/build_narration.py --gsap-only
+
+# Preview
+npx hyperframes preview
+
+# Render (only when user explicitly asks)
+npx hyperframes render src/hyperframes/<Name> --output out/<Name>.mp4
 ```
 
 ---
 
-## Syncing GSAP to audio
+## TTS text rules
 
-After Cell 5 runs, use the printed timestamps to update the GSAP scene start times in `index.html`. Each scene's `tl.set('#sN', { opacity:1 }, START)` value should match the section's `start` time from `timestamps.json`.
-
-**The audio is the source of truth** — the animation follows the narration, not the other way around.
-
----
-
-## HyperFrames audio element reference
-
-```html
-<audio id="vo"
-       class="clip"
-       src="audio/narration.wav"
-       data-start="0"
-       data-volume="1"
-       data-track-index="10">
-</audio>
-```
-
-- `data-start="0"` — narration starts at the beginning of the composition
-- `data-volume="1"` — full volume for voiceover
-- `data-track-index="10"` — high index to avoid conflicts with visual clip tracks
+- No contractions: `it's → it is`, `don't → do not`
+- Numbers as words: `30,000 → thirty thousand`
+- No symbols in speech: `≠ → is not equal to`, `% → percent`
+- Acronyms pronounced as words: `RAG → Rag`, `RLHF → R L H F` (test which sounds natural)
+- Copy directly from `SCRIPT_CLEAN.md` — never from the annotated `SCRIPT.md`
 
 ---
 
-## Standard settings (The Gen Academy)
+## Standard settings (Gen Academy)
 
 | Setting | Value |
-|---------|-------|
-| Target WPM | 160 |
-| Silence gap between sections | 0.5s |
-| TTS model | `Qwen/Qwen3-TTS-12Hz-1.7B-Base` |
-| Reference audio | `Text-to-speech-model/yuva'recording.m4a` |
-| Audio output path | `src/hyperframes/<Composition>/audio/` |
-| Final file | `narration.wav` |
-| Timestamps file | `timestamps.json` |
+|---|---|
+| Voice | `bm_george` |
+| SCENE_GAP | `1.5s` |
+| Whisper model | `base` |
+| Stitch method | `ffmpeg adelay + amix` |
+| Alignment | **openai-whisper (default, always)** |
+| Timestamps file | `beat_timestamps.json` |
+| Whisper cache | `narration.json` |
 
 ---
 
 ## Mandatory rules
 
-1. Always split by section — never generate the full script as one call. Section-by-section lets you regenerate individual scenes without re-running everything.
-2. Always save `timestamps.json` — it is the bridge between audio and animation.
-3. Always use `SCRIPT_CLEAN.md` as the text source, never the annotated `SCRIPT.md`.
-4. The `ReferenceText` must be transcribed from the actual reference recording — mismatches degrade voice clone quality.
-5. Do not change `data-track-index` below 10 — visual clips use lower indices.
+1. **Whisper alignment is always required.** Never ship a composition with stitch-only timestamps. If `openai-whisper` is not installed, block and install it before proceeding.
+2. **One beat per visual state change.** Never bundle two unrelated element appearances into one beat.
+3. **Text must be TTS-clean.** No contractions, no symbols, numbers as words.
+4. **`make_gsap()` owns the entire GSAP script.** Never hand-edit timing in `index.html` — the next `build_narration.py` run will overwrite it.
+5. **Use `adelay` for stitching.** Never use `anullsrc` silence padding + `amix` — causes floating-point drift.
+6. **Derive all scene transitions from `ns()`.** Never hardcode next-scene start times.
+7. **Use sub-phase wrappers** for scenes with 4+ visual states. Max ~4 elements visible simultaneously.
+8. **Run `--gsap-only` to iterate** on animation timing without re-running TTS. Re-uses cached `narration.json`.
+9. **Preview before rendering.** Open `npx hyperframes preview` after every build to verify sync.

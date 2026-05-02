@@ -1,0 +1,259 @@
+{
+  "total_duration": 347.49,
+  "voice": "bm_george",
+  "whisperx_aligned": true,
+  "beats": [
+    {
+      "id": "s01_intro",
+      "scene": 1,
+      "start": 0.0,
+      "duration": 12.309
+    },
+    {
+      "id": "s01_body",
+      "scene": 1,
+      "start": 12.34,
+      "duration": 9.728
+    },
+    {
+      "id": "s02_open",
+      "scene": 2,
+      "start": 23.14,
+      "duration": 2.816
+    },
+    {
+      "id": "s02_r1",
+      "scene": 2,
+      "start": 26.06,
+      "duration": 2.816
+    },
+    {
+      "id": "s02_r2",
+      "scene": 2,
+      "start": 29.18,
+      "duration": 7.019
+    },
+    {
+      "id": "s02_r3",
+      "scene": 2,
+      "start": 36.24,
+      "duration": 2.155
+    },
+    {
+      "id": "s02_r4",
+      "scene": 2,
+      "start": 38.08,
+      "duration": 2.965
+    },
+    {
+      "id": "s02_r5",
+      "scene": 2,
+      "start": 41.4,
+      "duration": 3.093
+    },
+    {
+      "id": "s02_r6",
+      "scene": 2,
+      "start": 44.02,
+      "duration": 3.243
+    },
+    {
+      "id": "s02_r7",
+      "scene": 2,
+      "start": 47.72,
+      "duration": 8.256
+    },
+    {
+      "id": "s02_note",
+      "scene": 2,
+      "start": 55.68,
+      "duration": 4.715
+    },
+    {
+      "id": "s03_title",
+      "scene": 3,
+      "start": 61.54,
+      "duration": 7.445
+    },
+    {
+      "id": "s03_pa",
+      "scene": 3,
+      "start": 69.58,
+      "duration": 12.8
+    },
+    {
+      "id": "s03_llms",
+      "scene": 3,
+      "start": 82.02,
+      "duration": 6.613
+    },
+    {
+      "id": "s03_pb",
+      "scene": 3,
+      "start": 89.02,
+      "duration": 13.76
+    },
+    {
+      "id": "s03_task",
+      "scene": 3,
+      "start": 102.74,
+      "duration": 14.165
+    },
+    {
+      "id": "s03_pc",
+      "scene": 3,
+      "start": 116.92,
+      "duration": 11.819
+    },
+    {
+      "id": "s03_base",
+      "scene": 3,
+      "start": 128.76,
+      "duration": 9.067
+    },
+    {
+      "id": "s03_pd",
+      "scene": 3,
+      "start": 137.84,
+      "duration": 12.864
+    },
+    {
+      "id": "s04_title",
+      "scene": 4,
+      "start": 151.98,
+      "duration": 15.189
+    },
+    {
+      "id": "s04_rlhf",
+      "scene": 4,
+      "start": 167.42,
+      "duration": 5.568
+    },
+    {
+      "id": "s04_s1",
+      "scene": 4,
+      "start": 172.98,
+      "duration": 3.968
+    },
+    {
+      "id": "s04_s2",
+      "scene": 4,
+      "start": 176.9,
+      "duration": 3.584
+    },
+    {
+      "id": "s04_s3",
+      "scene": 4,
+      "start": 180.48,
+      "duration": 4.224
+    },
+    {
+      "id": "s04_pc",
+      "scene": 4,
+      "start": 184.681,
+      "duration": 13.824
+    },
+    {
+      "id": "s04_cstr",
+      "scene": 4,
+      "start": 198.56,
+      "duration": 13.739
+    },
+    {
+      "id": "s05_title",
+      "scene": 5,
+      "start": 213.14,
+      "duration": 3.435
+    },
+    {
+      "id": "s05_pa",
+      "scene": 5,
+      "start": 216.86,
+      "duration": 7.893
+    },
+    {
+      "id": "s05_pb",
+      "scene": 5,
+      "start": 225.072,
+      "duration": 12.971
+    },
+    {
+      "id": "s05_warn",
+      "scene": 5,
+      "start": 238.04,
+      "duration": 15.317
+    },
+    {
+      "id": "s06_title",
+      "scene": 6,
+      "start": 254.44,
+      "duration": 8.939
+    },
+    {
+      "id": "s06_tl",
+      "scene": 6,
+      "start": 263.82,
+      "duration": 4.437
+    },
+    {
+      "id": "s06_vol",
+      "scene": 6,
+      "start": 268.22,
+      "duration": 18.411
+    },
+    {
+      "id": "s06_i1",
+      "scene": 6,
+      "start": 286.647,
+      "duration": 4.075
+    },
+    {
+      "id": "s06_i2",
+      "scene": 6,
+      "start": 290.78,
+      "duration": 3.392
+    },
+    {
+      "id": "s06_i3",
+      "scene": 6,
+      "start": 294.14,
+      "duration": 6.699
+    },
+    {
+      "id": "s07_c1",
+      "scene": 7,
+      "start": 301.74,
+      "duration": 3.307
+    },
+    {
+      "id": "s07_c2",
+      "scene": 7,
+      "start": 305.72,
+      "duration": 2.005
+    },
+    {
+      "id": "s07_c3",
+      "scene": 7,
+      "start": 307.72,
+      "duration": 2.773
+    },
+    {
+      "id": "s07_trans",
+      "scene": 7,
+      "start": 310.42,
+      "duration": 9.088
+    },
+    {
+      "id": "s07_diag",
+      "scene": 7,
+      "start": 319.52,
+      "duration": 15.232
+    },
+    {
+      "id": "s07_next",
+      "scene": 7,
+      "start": 334.74,
+      "duration": 9.749
+    }
+  ]
+}

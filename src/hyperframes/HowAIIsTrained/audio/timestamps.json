@@ -1,0 +1,55 @@
+{
+  "total_duration": 294.774625,
+  "voice": "bm_george",
+  "sections": [
+    {
+      "id": "s01",
+      "label": "Intro",
+      "start": 0.0,
+      "audio_duration": 20.864,
+      "end": 32.0
+    },
+    {
+      "id": "s02",
+      "label": "Architecture Flowchart",
+      "start": 22.86,
+      "audio_duration": 33.067,
+      "end": 60.86
+    },
+    {
+      "id": "s03",
+      "label": "Pre-Training",
+      "start": 57.93,
+      "audio_duration": 69.077,
+      "end": 127.93
+    },
+    {
+      "id": "s04",
+      "label": "Instruction Tuning & RLHF",
+      "start": 129.01,
+      "audio_duration": 46.891,
+      "end": 176.01
+    },
+    {
+      "id": "s05",
+      "label": "Alignment",
+      "start": 177.9,
+      "audio_duration": 33.685,
+      "end": 211.9
+    },
+    {
+      "id": "s06",
+      "label": "Knowledge Cutoff",
+      "start": 213.59,
+      "audio_duration": 44.715,
+      "end": 258.59
+    },
+    {
+      "id": "s07",
+      "label": "Close",
+      "start": 260.3,
+      "audio_duration": 34.475,
+      "end": 295.3
+    }
+  ]
+}

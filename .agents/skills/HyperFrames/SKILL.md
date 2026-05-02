@@ -32,7 +32,8 @@ Load individual rule files for detailed explanations and code examples:
 - [rules/media.md](rules/media.md) - Video, image, audio elements — embed, trim, volume
 - [rules/transitions.md](rules/transitions.md) - Scene transitions and the shader-transitions catalog
 - [rules/catalog.md](rules/catalog.md) - 50+ pre-built blocks (social, UI, VFX) via `npx hyperframes add`
-- [rules/rendering.md](rules/rendering.md) - CLI render command, quality/format/fps/GPU/Docker options
+- [rules/preview.md](rules/preview.md) - **Standard preview.html template** — always create alongside index.html; open after every change; never render until user asks
+- [rules/rendering.md](rules/rendering.md) - CLI render command, quality/format/fps/GPU/Docker options — only run when user explicitly asks
 - [rules/cli.md](rules/cli.md) - Full CLI reference (init, preview, lint, snapshot, tts, transcribe, capture)
 - [rules/determinism.md](rules/determinism.md) - Determinism rules — what is and isn't allowed in scripts
 - [rules/common-mistakes.md](rules/common-mistakes.md) - Top pitfalls and how to fix them
@@ -40,13 +41,14 @@ Load individual rule files for detailed explanations and code examples:
 - [rules/prompting.md](rules/prompting.md) - Vocabulary and patterns for describing videos to AI agents
 - [rules/sketch-educational-style.md](rules/sketch-educational-style.md) - Design system for white-background sketch-inspired educational videos — fonts, underlines, cards, colors, anti-patterns
 - [rules/brand-gen-academy.md](rules/brand-gen-academy.md) - The Gen Academy brand palette, white-background color adaptation, card classes, arrow markers, 160 wpm narration pace
-- [rules/tts-pipeline.md](rules/tts-pipeline.md) - End-to-end voiceover pipeline: Qwen3-TTS voice cloning, section-by-section generation, stitching, timestamps.json, embedding audio into index.html
+- [rules/tts-pipeline.md](rules/tts-pipeline.md) - **Beat-granular TTS + Whisper word-level alignment pipeline (DEFAULT for all narrated videos)** — beats, adelay stitching, openai-whisper sync, make_gsap(), sub-phase wrappers
 
 ## Quick start
 
 ```bash
 npx hyperframes init my-video    # Scaffold project
 npx hyperframes preview          # Live dev server
+# Render only when user explicitly asks
 npx hyperframes render --output out.mp4
 ```
 
@@ -61,4 +63,8 @@ npx hyperframes render --output out.mp4
 7. `window.__timelines` key must match `data-composition-id`
 8. Always create two script files alongside every composition:
    - `SCRIPT.md` — full annotated script with timestamps, word counts, scene beats, and recording notes
-   - `SCRIPT_CLEAN.md` — narration-only, no timestamps, no symbols, no stage directions; ready to paste into a TTS model. Expand all contractions (it's → it is, don't → do not) so TTS models read cleanly.
+   - `SCRIPT_CLEAN.md` — narration-only, no timestamps, no symbols, no stage directions; ready to paste into a TTS model. Expand all contractions (it's → it is, don't → do not) so TTS models read cleanly. **Write all numbers as full words** — TTS reads numerals digit by digit (30,000 → "three zero zero zero"). Write `thirty thousand`, `one hundred twenty eight thousand`, etc.
+9. **Always create `preview.html` alongside every `index.html`** — see [rules/preview.md](rules/preview.md) for the standard template. Open it with `npx hyperframes preview` after every change so the user can review animations without rendering.
+10. **Never run `npx hyperframes render` unless the user explicitly asks to render or create a video.** After building or modifying a composition, always open the preview instead.
+11. **Always include the Gen Academy logo watermark** in every composition. Place it as a permanently visible element (not a `.scene`, no opacity animation) at `position:absolute; bottom:28px; right:28px; z-index:100` inside `#root`. Use the standard black badge with brain-lightbulb SVG icon, yellow `#FEFB41` separator, "Gen Academy" wordmark in white, and tagline "AI Skills That Advance Careers." in yellow. Copy the exact HTML snippet from any existing `index.html` in `src/hyperframes/`.
+12. **Every narrated composition MUST use the beat-granular + Whisper pipeline** — see [rules/tts-pipeline.md](rules/tts-pipeline.md). Never generate a composition with voiceover without running `openai-whisper` alignment. Stitch-only timestamps are not acceptable as final output. Install with `pip install openai-whisper` before starting any video+audio task.
