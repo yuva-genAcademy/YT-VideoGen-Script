@@ -210,10 +210,6 @@ BEATS = [
      "text": "When a model fails, hallucinating, refusing, being inconsistent, the root cause "
              "lives in one of these phases. That diagnostic ability separates engineers who "
              "understand the stack from those who are just prompting and hoping."},
-
-    {"id": "s07_next",   "scene": 7,
-     "text": "Next, we go inside the transformer itself, how attention works, and why the "
-             "context window is the most important number you will learn to manage."},
 ]
 
 
@@ -448,7 +444,7 @@ def make_gsap(T, D):
     s5_pa_out = round(at('s05_pb')   - 0.3, 2)
     s6_pa_out = round(at('s06_vol')  - 0.3, 2)
 
-    total = round(out('s07_next', tail=3.0), 2)
+    total = round(out('s07_diag', tail=3.0), 2)
 
     js = f"""
   const tl = gsap.timeline({{ paused: true }});
@@ -574,8 +570,7 @@ def make_gsap(T, D):
   ft('#s7-c3', {{ opacity:0, y:18  }}, {{ opacity:1, y:0, duration:0.5 }}, {at('s07_c3')});
   ft('#s7-trans', {{ opacity:0, y:12 }}, {{ opacity:1, y:0, duration:0.5 }}, {at('s07_trans')});
   ft('#s7-diag',  {{ opacity:0, y:12 }}, {{ opacity:1, y:0, duration:0.5 }}, {at('s07_diag')});
-  ft('#s7-next',  {{ opacity:0, y:16 }}, {{ opacity:1, y:0, duration:0.6 }}, {at('s07_next')});
-  tl.to('#s7', {{ opacity:0, duration:0.8 }}, {out('s07_next', tail=2.5)});
+  tl.to('#s7', {{ opacity:0, duration:0.8 }}, {out('s07_diag', tail=2.5)});
 
   // Duration marker
   tl.set({{}}, {{}}, {total});

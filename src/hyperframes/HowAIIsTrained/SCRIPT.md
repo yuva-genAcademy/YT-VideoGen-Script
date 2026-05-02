@@ -105,10 +105,8 @@
 
 > When a model fails — hallucinating, refusing, being inconsistent — the root cause lives in one of these phases. That diagnostic ability separates engineers who understand the stack from those who are just prompting and hoping.
 
-> Next, we go inside the transformer itself — how attention works, and why the context window is the most important number you will learn to manage.
-
-**On screen:** Three-phase recap cards → Transformer underlining → Failure diagnostic callout → Next module teaser
-**Beat:** Each phase card appears as narrator names it; teaser slides in at close
+**On screen:** Three-phase recap cards → Transformer underlining → Failure diagnostic callout
+**Beat:** Each phase card appears as narrator names it
 
 ---
 
