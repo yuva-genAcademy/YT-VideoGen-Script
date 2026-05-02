@@ -1,0 +1,244 @@
+{
+  "total_duration": 373.337333,
+  "voice": "bm_george",
+  "beats": [
+    {
+      "id": "s01a",
+      "scene": 1,
+      "start": 0.0,
+      "duration": 6.592,
+      "text_preview": "Nearly every major language model in production today is bui"
+    },
+    {
+      "id": "s01b",
+      "scene": 1,
+      "start": 6.592,
+      "duration": 11.584,
+      "text_preview": "GPT, Claude, Gemini, LLaMA. If you are making decisions abou"
+    },
+    {
+      "id": "s02a",
+      "scene": 2,
+      "start": 19.676,
+      "duration": 8.96,
+      "text_preview": "Before two thousand seventeen, the dominant approach process"
+    },
+    {
+      "id": "s02b",
+      "scene": 2,
+      "start": 28.636,
+      "duration": 8.213,
+      "text_preview": "Models struggled to connect information across long distance"
+    },
+    {
+      "id": "s02c",
+      "scene": 2,
+      "start": 36.849,
+      "duration": 12.053,
+      "text_preview": "The transformer, introduced in Attention Is All You Need, re"
+    },
+    {
+      "id": "s02d",
+      "scene": 2,
+      "start": 48.902,
+      "duration": 8.213,
+      "text_preview": "A word at position one and a word at position fifty interact"
+    },
+    {
+      "id": "s02e",
+      "scene": 2,
+      "start": 57.115,
+      "duration": 13.12,
+      "text_preview": "Training can be parallelized across tokens within a sequence"
+    },
+    {
+      "id": "s03a",
+      "scene": 3,
+      "start": 71.735,
+      "duration": 8.661,
+      "text_preview": "A transformer is built by stacking identical layers. Dozens "
+    },
+    {
+      "id": "s03a2",
+      "scene": 3,
+      "start": 80.396,
+      "duration": 2.709,
+      "text_preview": "Each layer does two things in sequence."
+    },
+    {
+      "id": "s03b_sa",
+      "scene": 3,
+      "start": 83.105,
+      "duration": 14.165,
+      "text_preview": "First, self-attention. Tokens exchange information across th"
+    },
+    {
+      "id": "s03b_ff",
+      "scene": 3,
+      "start": 97.27,
+      "duration": 19.221,
+      "text_preview": "Second, a feed-forward network. Two linear transformations a"
+    },
+    {
+      "id": "s03d",
+      "scene": 3,
+      "start": 116.491,
+      "duration": 19.691,
+      "text_preview": "Two components make deep stacking reliable. Residual connect"
+    },
+    {
+      "id": "s04a",
+      "scene": 4,
+      "start": 137.682,
+      "duration": 6.464,
+      "text_preview": "Not all transformers are structured the same way. The two do"
+    },
+    {
+      "id": "s04b1",
+      "scene": 4,
+      "start": 144.146,
+      "duration": 7.467,
+      "text_preview": "Encoder-only models like BERT apply attention in both direct"
+    },
+    {
+      "id": "s04b2",
+      "scene": 4,
+      "start": 151.613,
+      "duration": 5.611,
+      "text_preview": "Built for comprehension tasks: classification, semantic sear"
+    },
+    {
+      "id": "s04b3",
+      "scene": 4,
+      "start": 157.224,
+      "duration": 2.837,
+      "text_preview": "They are not designed for text generation."
+    },
+    {
+      "id": "s04c1",
+      "scene": 4,
+      "start": 160.061,
+      "duration": 13.163,
+      "text_preview": "Decoder-only models like GPT and Claude restrict attention s"
+    },
+    {
+      "id": "s04c2",
+      "scene": 4,
+      "start": 173.224,
+      "duration": 5.056,
+      "text_preview": "One token at a time, appending each output to the input and "
+    },
+    {
+      "id": "s04d",
+      "scene": 4,
+      "start": 178.28,
+      "duration": 18.133,
+      "text_preview": "This distinction has practical consequences. A retrieval sys"
+    },
+    {
+      "id": "s05a",
+      "scene": 5,
+      "start": 197.913,
+      "duration": 12.992,
+      "text_preview": "At the final layer, each token has a rich contextual represe"
+    },
+    {
+      "id": "s05b",
+      "scene": 5,
+      "start": 210.905,
+      "duration": 5.12,
+      "text_preview": "The model samples from that distribution, appends the token,"
+    },
+    {
+      "id": "s05c",
+      "scene": 5,
+      "start": 216.025,
+      "duration": 19.755,
+      "text_preview": "Each new token requires a forward pass through the model, th"
+    },
+    {
+      "id": "s06a",
+      "scene": 6,
+      "start": 237.28,
+      "duration": 13.547,
+      "text_preview": "Most architectures hit a ceiling. Add more parameters and ga"
+    },
+    {
+      "id": "s06b",
+      "scene": 6,
+      "start": 250.827,
+      "duration": 13.099,
+      "text_preview": "Published scaling laws describe a consistent relationship be"
+    },
+    {
+      "id": "s06c",
+      "scene": 6,
+      "start": 263.926,
+      "duration": 9.493,
+      "text_preview": "That predictability drove the last eight years of AI progres"
+    },
+    {
+      "id": "s06d",
+      "scene": 6,
+      "start": 273.419,
+      "duration": 16.661,
+      "text_preview": "When you evaluate a new model release, that context matters."
+    },
+    {
+      "id": "s07a",
+      "scene": 7,
+      "start": 291.58,
+      "duration": 19.797,
+      "text_preview": "One infrastructure detail that directly affects what is feas"
+    },
+    {
+      "id": "s07b",
+      "scene": 7,
+      "start": 311.377,
+      "duration": 11.307,
+      "text_preview": "KV cache is one of the dominant memory costs of inference, a"
+    },
+    {
+      "id": "s07c",
+      "scene": 7,
+      "start": 322.684,
+      "duration": 12.139,
+      "text_preview": "Longer context is not just more expensive to compute. It red"
+    },
+    {
+      "id": "s08a",
+      "scene": 8,
+      "start": 336.323,
+      "duration": 7.765,
+      "text_preview": "The transformer replaced sequential processing with parallel"
+    },
+    {
+      "id": "s08b",
+      "scene": 8,
+      "start": 344.088,
+      "duration": 7.509,
+      "text_preview": "It stacks layers of attention and feed-forward operations, s"
+    },
+    {
+      "id": "s08c",
+      "scene": 8,
+      "start": 351.597,
+      "duration": 6.251,
+      "text_preview": "Encoder-only models handle comprehension. Decoder-only model"
+    },
+    {
+      "id": "s08d",
+      "scene": 8,
+      "start": 357.848,
+      "duration": 6.635,
+      "text_preview": "The architecture scales predictably, which explains the pace"
+    },
+    {
+      "id": "s08e",
+      "scene": 8,
+      "start": 364.483,
+      "duration": 8.853,
+      "text_preview": "And KV cache is one of the dominant memory costs of inferenc"
+    }
+  ]
+}

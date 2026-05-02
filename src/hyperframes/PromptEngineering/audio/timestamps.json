@@ -1,90 +1,90 @@
 {
-  "total_duration": 234.706667,
+  "total_duration": 248.762,
   "voice": "bm_george",
   "sections": [
     {
       "id": "s01",
-      "label": "Hook",
+      "label": "Introduction",
       "start": 0.0,
-      "audio_duration": 19.072,
+      "audio_duration": 18.955,
       "end": 25.25
     },
     {
       "id": "s02",
       "label": "Base Prompt",
-      "start": 21.07,
-      "audio_duration": 6.635,
-      "end": 29.32
+      "start": 21.03,
+      "audio_duration": 8.375,
+      "end": 29.28
     },
     {
       "id": "s03",
       "label": "Zero-Shot",
-      "start": 29.7,
-      "audio_duration": 16.043,
-      "end": 48.45
+      "start": 31.54,
+      "audio_duration": 16.776,
+      "end": 50.29
     },
     {
       "id": "s04",
       "label": "Role Prompting",
-      "start": 47.74,
-      "audio_duration": 14.741,
-      "end": 66.11
+      "start": 50.44,
+      "audio_duration": 16.784,
+      "end": 68.81
     },
     {
       "id": "s05",
       "label": "Few-Shot",
-      "start": 64.48,
-      "audio_duration": 13.845,
-      "end": 82.86
+      "start": 69.36,
+      "audio_duration": 16.04,
+      "end": 87.74
     },
     {
       "id": "s06",
       "label": "Chain of Thought",
-      "start": 80.33,
-      "audio_duration": 21.227,
-      "end": 106.58
+      "start": 87.55,
+      "audio_duration": 19.483,
+      "end": 113.8
     },
     {
       "id": "s07",
       "label": "Self-Consistency",
-      "start": 103.56,
-      "audio_duration": 16.555,
-      "end": 121.56
+      "start": 109.18,
+      "audio_duration": 17.567,
+      "end": 127.18
     },
     {
       "id": "s08",
       "label": "Tree of Thoughts",
-      "start": 122.11,
-      "audio_duration": 17.152,
-      "end": 140.21
+      "start": 128.93,
+      "audio_duration": 18.186,
+      "end": 147.03
     },
     {
       "id": "s09",
       "label": "ReAct",
-      "start": 141.26,
-      "audio_duration": 15.616,
-      "end": 159.26
+      "start": 149.26,
+      "audio_duration": 17.181,
+      "end": 167.26
     },
     {
       "id": "s10",
       "label": "Prompt Chaining",
-      "start": 158.88,
-      "audio_duration": 14.144,
-      "end": 177.28
+      "start": 168.56,
+      "audio_duration": 14.949,
+      "end": 186.96
     },
     {
       "id": "s11",
       "label": "Comparison",
-      "start": 175.02,
-      "audio_duration": 39.979,
-      "end": 219.52
+      "start": 185.62,
+      "audio_duration": 44.05,
+      "end": 230.12
     },
     {
       "id": "s12",
-      "label": "Outro",
-      "start": 217.0,
-      "audio_duration": 17.707,
-      "end": 238.0
+      "label": "Conclusion",
+      "start": 231.8,
+      "audio_duration": 16.962,
+      "end": 252.8
     }
   ]
 }

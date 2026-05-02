@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tokens and Tokenization</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #FAFBFC; overflow: hidden; }
+
+    #root {
+      position: relative; width: 1920px; height: 1080px; overflow: hidden;
+      background-color: #FAFBFC;
+      background-image:
+        linear-gradient(rgba(0,0,0,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.028) 1px, transparent 1px);
+      background-size: 60px 60px;
+      font-family: 'DM Sans', sans-serif; color: #111827;
+    }
+
+    .scene { position: absolute; inset: 0; opacity: 0; }
+
+    .card { position: absolute; background: #FFFFFF; border-radius: 8px; padding: 36px 44px; }
+    .card-neutral { border: 3.5px solid #E5E7EB; box-shadow: 5px 5px 0 rgba(0,0,0,0.05); }
+    .card-blue    { border: 3.5px solid #2563EB; box-shadow: 5px 5px 0 rgba(37,99,235,0.14); }
+    .card-navy    { border: 3.5px solid #1E3A5F; box-shadow: 5px 5px 0 rgba(30,58,95,0.12); }
+
+    .display { font-family: 'Nunito', sans-serif; font-weight: 800; line-height: 1; }
+    .tag { font-size: 15px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase; color: #6B7280; font-family: 'DM Sans', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; font-weight: 400; }
+    .card-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase; margin-bottom: 14px; color: #9CA3AF; }
+
+    .tok { display: inline-block; padding: 5px 14px; border-radius: 6px;
+           font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 600;
+           border: 2.5px solid #2563EB; background: #EFF6FF; color: #1E3A5F; margin: 0 3px; }
+    .tok-char { display: inline-block; padding: 5px 9px; border-radius: 5px;
+                font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 600;
+                border: 2px solid #D1D5DB; background: #F9FAFB; color: #374151; margin: 0 2px; }
+
+    #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 200; }
+  </style>
+</head>
+<body>
+
+<div id="root" data-composition-id="tokens-and-tokenization" data-width="1920" data-height="1080" data-start="0">
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden;">
+  <defs>
+    <filter id="sketch" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="3" seed="5" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <marker id="arr-dark" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#111827"/>
+    </marker>
+    <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#2563EB"/>
+    </marker>
+  </defs>
+</svg>
+
+  <audio id="vo" class="clip" src="audio/narration.wav"
+         data-start="0" data-volume="1" data-track-index="10"></audio>
+  <div id="flash"></div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 1 — WHAT IS A TOKEN  (0 – 18s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s1" class="scene">
+
+    <div id="s1-tag" class="tag"
+         style="position:absolute;top:80px;left:50%;transform:translateX(-50%);white-space:nowrap;opacity:0;">
+      Module 2 · Tokens &amp; Tokenization
+    </div>
+
+    <div id="s1-def" style="position:absolute;top:160px;left:50%;transform:translateX(-50%);
+                             text-align:center;width:1400px;opacity:0;">
+      <div style="font-size:36px;color:#6B7280;font-family:'DM Sans',sans-serif;line-height:1.5;">
+        Language models don't read text the way humans do.
+      </div>
+    </div>
+
+    <!-- Full word, hidden after split fires -->
+    <div id="s1-full" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+      <div class="display" style="font-size:136px;color:#111827;letter-spacing:-4px;">Tokenization</div>
+    </div>
+
+    <!-- Split state -->
+    <div id="s1-split" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                               display:flex;align-items:center;justify-content:center;opacity:0;">
+      <div id="s1-tok1" style="font-family:'JetBrains Mono',monospace;font-size:96px;font-weight:600;
+                                padding:12px 32px;border-radius:10px 0 0 10px;
+                                border:4px solid #2563EB;border-right:2px solid #2563EB;
+                                background:#EFF6FF;color:#1E3A5F;transform:translateX(20px);opacity:0;">
+        Token
+      </div>
+      <div id="s1-divline" style="width:4px;height:124px;background:#2563EB;opacity:0;"></div>
+      <div id="s1-tok2" style="font-family:'JetBrains Mono',monospace;font-size:96px;font-weight:600;
+                                padding:12px 32px;border-radius:0 10px 10px 0;
+                                border:4px solid #9CA3AF;border-left:2px solid #9CA3AF;
+                                background:#F9FAFB;color:#6B7280;transform:translateX(-20px);opacity:0;">
+        ization
+      </div>
+    </div>
+
+    <div id="s1-label" style="position:absolute;bottom:220px;left:50%;transform:translateX(-50%);
+                               text-align:center;opacity:0;">
+      <div style="font-size:28px;color:#6B7280;">
+        Not a word. Not a character.
+        <span style="color:#2563EB;font-weight:600;">A token.</span>
+      </div>
+      <div style="margin-top:10px;font-size:19px;color:#9CA3AF;">
+        Fragments of text — somewhere between characters and words.
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 2 — WHY TOKENIZATION EXISTS  (18 – 42s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s2" class="scene">
+
+    <div id="s2-tag" class="tag" style="position:absolute;top:68px;left:160px;opacity:0;">
+      Why Tokenization Exists
+    </div>
+    <div id="s2-head" class="display"
+         style="position:absolute;top:104px;left:160px;font-size:68px;color:#111827;letter-spacing:-2px;opacity:0;">
+      Computers process numbers,
+      <span style="color:#2563EB;">not text.</span>
+    </div>
+
+    <!-- Pipeline nodes -->
+    <div id="s2-n1" style="position:absolute;top:320px;left:60px;width:240px;opacity:0;">
+      <div style="background:#111827;border-radius:10px;padding:18px 22px;text-align:center;">
+        <div class="card-label" style="color:#9CA3AF;margin-bottom:6px;">raw text</div>
+        <div class="mono" style="font-size:28px;color:#FFFFFF;line-height:1.35;">"Hello<br>world"</div>
+      </div>
+    </div>
+
+    <svg id="s2-a1" viewBox="0 0 72 24" style="position:absolute;top:366px;left:308px;width:72px;height:24px;opacity:0;">
+      <path d="M0,12 L64,12" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round" marker-end="url(#arr-blue)"/>
+    </svg>
+
+    <div id="s2-n2" style="position:absolute;top:308px;left:388px;width:296px;opacity:0;">
+      <div style="background:#EFF6FF;border:3px solid #2563EB;border-radius:10px;padding:18px 22px;text-align:center;">
+        <div class="card-label" style="color:#2563EB;margin-bottom:8px;">tokens</div>
+        <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;">
+          <span class="tok" style="font-size:17px;padding:3px 9px;">Hell</span>
+          <span class="tok" style="font-size:17px;padding:3px 9px;">o</span>
+          <span class="tok" style="font-size:17px;padding:3px 9px;">world</span>
+        </div>
+      </div>
+    </div>
+
+    <svg id="s2-a2" viewBox="0 0 72 24" style="position:absolute;top:366px;left:692px;width:72px;height:24px;opacity:0;">
+      <path d="M0,12 L64,12" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round" marker-end="url(#arr-blue)"/>
+    </svg>
+
+    <div id="s2-n3" style="position:absolute;top:308px;left:772px;width:280px;opacity:0;">
+      <div style="background:#F0FDF4;border:3px solid #10B981;border-radius:10px;padding:18px 22px;text-align:center;">
+        <div class="card-label" style="color:#047857;margin-bottom:8px;">integer IDs</div>
+        <div class="mono" style="font-size:22px;color:#111827;line-height:1.7;">15496<br>995<br>995</div>
+      </div>
+    </div>
+
+    <svg id="s2-a3" viewBox="0 0 72 24" style="position:absolute;top:366px;left:1060px;width:72px;height:24px;opacity:0;">
+      <path d="M0,12 L64,12" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round" marker-end="url(#arr-blue)"/>
+    </svg>
+
+    <div id="s2-n4" style="position:absolute;top:296px;left:1140px;width:360px;opacity:0;">
+      <div style="background:#FFFBEB;border:3px solid #F59E0B;border-radius:10px;padding:18px 22px;text-align:center;">
+        <div class="card-label" style="color:#92400E;margin-bottom:8px;">embeddings</div>
+        <div class="mono" style="font-size:15px;color:#111827;line-height:1.75;">
+          [0.23, −0.87, 0.14,<br>0.62, −0.31, ...]
+        </div>
+        <div style="margin-top:8px;font-size:13px;color:#92400E;">dense numerical vectors</div>
+      </div>
+    </div>
+
+    <svg id="s2-a4" viewBox="0 0 72 24" style="position:absolute;top:366px;left:1508px;width:72px;height:24px;opacity:0;">
+      <path d="M0,12 L64,12" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round" marker-end="url(#arr-blue)"/>
+    </svg>
+
+    <div id="s2-n5" style="position:absolute;top:316px;left:1588px;width:180px;opacity:0;">
+      <div style="background:#1E3A5F;border-radius:10px;padding:18px 22px;text-align:center;">
+        <div class="card-label" style="color:#93C5FD;margin-bottom:6px;">model</div>
+        <div style="font-size:48px;text-align:center;">⚡</div>
+      </div>
+    </div>
+
+    <div id="s2-insight" style="position:absolute;bottom:100px;left:160px;right:160px;text-align:center;opacity:0;">
+      <div style="font-size:22px;color:#6B7280;">
+        Tokenization is the <span style="color:#111827;font-weight:600;">conversion step</span>
+        — text becomes integers becomes vectors.
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 3 — HOW BPE WORKS  (41.5 – 77s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s3" class="scene">
+
+    <div style="position:absolute;top:-20px;right:40px;font-family:'Nunito',sans-serif;
+                font-size:280px;font-weight:700;color:rgba(37,99,235,0.055);line-height:1;user-select:none;">BPE</div>
+
+    <div id="s3-tag"  class="tag"  style="position:absolute;top:68px;left:160px;opacity:0;">How Tokenization Works</div>
+    <div id="s3-name" class="display"
+         style="position:absolute;top:104px;left:160px;font-size:72px;color:#111827;letter-spacing:-2px;opacity:0;">
+      Byte Pair Encoding
+    </div>
+    <svg id="s3-uline" viewBox="0 0 620 16"
+         style="position:absolute;top:200px;left:160px;width:620px;height:16px;">
+      <path id="s3-upath" d="M4,12 L616,8" stroke="#2563EB" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="620" stroke-dashoffset="620"/>
+    </svg>
+
+    <!-- BPE steps — left column -->
+    <div style="position:absolute;top:240px;left:160px;width:780px;">
+
+      <div id="s3-s1" style="margin-bottom:24px;opacity:0;">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+          <span class="mono" style="font-size:11px;color:#2563EB;letter-spacing:.1em;text-transform:uppercase;min-width:56px;">Step 1</span>
+          <span style="font-size:16px;color:#6B7280;">Start with individual characters</span>
+        </div>
+        <div>
+          <span class="tok-char">l</span><span class="tok-char">o</span><span class="tok-char">w</span>
+          <span style="color:#D1D5DB;margin:0 8px;font-size:18px;">·</span>
+          <span class="tok-char">l</span><span class="tok-char">o</span><span class="tok-char">w</span><span class="tok-char">e</span><span class="tok-char">r</span>
+          <span style="color:#D1D5DB;margin:0 8px;font-size:18px;">·</span>
+          <span class="tok-char">n</span><span class="tok-char">e</span><span class="tok-char">w</span><span class="tok-char">e</span><span class="tok-char">r</span>
+        </div>
+      </div>
+
+      <div id="s3-s2" style="margin-bottom:24px;opacity:0;">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+          <span class="mono" style="font-size:11px;color:#2563EB;letter-spacing:.1em;text-transform:uppercase;min-width:56px;">Step 2</span>
+          <span style="font-size:16px;color:#6B7280;">Merge most-frequent pair: <strong style="color:#111827;">l+o → lo</strong></span>
+        </div>
+        <div>
+          <span class="tok" style="font-size:17px;padding:4px 12px;background:#DBEAFE;">lo</span><span class="tok-char">w</span>
+          <span style="color:#D1D5DB;margin:0 8px;font-size:18px;">·</span>
+          <span class="tok" style="font-size:17px;padding:4px 12px;background:#DBEAFE;">lo</span><span class="tok-char">w</span><span class="tok-char">e</span><span class="tok-char">r</span>
+          <span style="color:#D1D5DB;margin:0 8px;font-size:18px;">·</span>
+          <span class="tok-char">n</span><span class="tok-char">e</span><span class="tok-char">w</span><span class="tok-char">e</span><span class="tok-char">r</span>
+        </div>
+      </div>
+
+      <div id="s3-s3" style="margin-bottom:24px;opacity:0;">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+          <span class="mono" style="font-size:11px;color:#2563EB;letter-spacing:.1em;text-transform:uppercase;min-width:56px;">Step 3</span>
+          <span style="font-size:16px;color:#6B7280;">Merge next: <strong style="color:#111827;">e+r → er</strong></span>
+        </div>
+        <div>
+          <span class="tok" style="font-size:17px;padding:4px 12px;background:#DBEAFE;">lo</span><span class="tok-char">w</span>
+          <span style="color:#D1D5DB;margin:0 8px;font-size:18px;">·</span>
+          <span class="tok" style="font-size:17px;padding:4px 12px;background:#DBEAFE;">lo</span><span class="tok-char">w</span><span class="tok" style="font-size:17px;padding:4px 12px;background:#DBEAFE;">er</span>
+          <span style="color:#D1D5DB;margin:0 8px;font-size:18px;">·</span>
+          <span class="tok-char">n</span><span class="tok-char">e</span><span class="tok-char">w</span><span class="tok" style="font-size:17px;padding:4px 12px;background:#DBEAFE;">er</span>
+        </div>
+      </div>
+
+      <div id="s3-s4" style="opacity:0;">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+          <span class="mono" style="font-size:11px;color:#2563EB;letter-spacing:.1em;text-transform:uppercase;min-width:56px;">Repeat</span>
+          <span style="font-size:16px;color:#6B7280;">Until vocabulary reaches target size</span>
+        </div>
+        <div id="s3-vocab" style="display:inline-flex;align-items:center;gap:14px;
+                    padding:14px 28px;background:#EFF6FF;border:2px solid #2563EB;border-radius:8px;opacity:0;">
+          <span class="mono" style="font-size:13px;color:#1E40AF;">vocab_size</span>
+          <span style="font-size:20px;color:#9CA3AF;">=</span>
+          <span class="display" style="font-size:30px;color:#1E3A5F;">30,000 – 100,000</span>
+          <span style="font-size:14px;color:#6B7280;">tokens</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right column: examples -->
+    <div style="position:absolute;top:240px;right:100px;width:760px;">
+
+      <div id="s3-ex1" style="margin-bottom:28px;opacity:0;">
+        <div class="card card-neutral" style="position:static;filter:url(#sketch);">
+          <div class="card-label">common word → single token</div>
+          <div style="display:flex;align-items:center;gap:20px;margin-top:4px;">
+            <span class="mono" style="font-size:36px;color:#111827;">"the"</span>
+            <svg viewBox="0 0 56 24" style="width:56px;height:24px;flex-shrink:0;">
+              <path d="M0,12 L48,12" stroke="#2563EB" stroke-width="2.5" fill="none" stroke-linecap="round" marker-end="url(#arr-blue)"/>
+            </svg>
+            <span class="tok" style="font-size:28px;">the</span>
+            <span style="font-size:15px;color:#9CA3AF;">ID: 262</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="s3-ex2" style="margin-bottom:28px;opacity:0;">
+        <div class="card card-neutral" style="position:static;filter:url(#sketch);">
+          <div class="card-label">rare/technical word → fragmented</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:4px;flex-wrap:wrap;">
+            <span class="mono" style="font-size:30px;color:#111827;">"tokenization"</span>
+            <svg viewBox="0 0 56 24" style="width:56px;height:24px;flex-shrink:0;">
+              <path d="M0,12 L48,12" stroke="#2563EB" stroke-width="2.5" fill="none" stroke-linecap="round" marker-end="url(#arr-blue)"/>
+            </svg>
+            <span class="tok" style="font-size:22px;padding:5px 16px;">token</span>
+            <span class="tok" style="font-size:22px;padding:5px 16px;border-color:#9CA3AF;background:#F9FAFB;color:#6B7280;">ization</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="s3-badge" style="opacity:0;">
+        <div style="display:inline-flex;align-items:center;gap:14px;
+                    padding:16px 28px;background:#111827;border-radius:8px;">
+          <span style="font-size:20px;">📚</span>
+          <span style="font-size:17px;color:#FFFFFF;font-family:'DM Sans',sans-serif;">
+            Vocabulary is <strong style="color:#60A5FA;">learned from a training corpus</strong>
+            — not hand-coded.
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 4 — TOKENS ARE NOT WORDS  (76.5 – 103s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s4" class="scene">
+
+    <div id="s4-tag"  class="tag"  style="position:absolute;top:68px;left:160px;opacity:0;">Token Counts vs Word Counts</div>
+    <div id="s4-head" class="display"
+         style="position:absolute;top:100px;left:160px;font-size:80px;color:#111827;letter-spacing:-2px;opacity:0;">
+      Tokens <span style="color:#DC2626;">≠</span> Words
+    </div>
+    <svg id="s4-uline" viewBox="0 0 540 16"
+         style="position:absolute;top:202px;left:160px;width:540px;height:16px;">
+      <path id="s4-upath" d="M4,12 L536,8" stroke="#2563EB" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="540" stroke-dashoffset="540"/>
+    </svg>
+
+    <!-- English column -->
+    <div id="s4-c1" style="position:absolute;top:250px;left:120px;width:540px;opacity:0;">
+      <div style="background:#FFFFFF;border:3.5px solid #1E3A5F;border-radius:8px;padding:36px 44px;
+                  box-shadow:5px 5px 0 rgba(30,58,95,0.10);filter:url(#sketch);">
+        <div class="card-label" style="color:#1E3A5F;">English prose</div>
+        <div class="display" style="font-size:56px;color:#111827;line-height:1.1;">100 words</div>
+        <div style="margin:16px 0;height:2px;background:#E5E7EB;border-radius:2px;"></div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div class="display" style="font-size:52px;color:#2563EB;">~75</div>
+          <div style="font-size:17px;color:#6B7280;">tokens<br><span style="color:#10B981;font-weight:700;">efficient</span></div>
+        </div>
+        <div style="margin-top:10px;font-size:13px;color:#9CA3AF;">≈ 0.75 tokens per word</div>
+      </div>
+    </div>
+
+    <!-- VS divider -->
+    <div id="s4-vs" style="position:absolute;top:370px;left:700px;opacity:0;">
+      <div class="display" style="font-size:52px;color:#D1D5DB;">vs</div>
+    </div>
+
+    <!-- Thai / Arabic column -->
+    <div id="s4-c2" style="position:absolute;top:250px;left:820px;width:540px;opacity:0;">
+      <div style="background:#FEF2F2;border:3.5px solid #DC2626;border-radius:8px;padding:36px 44px;
+                  box-shadow:5px 5px 0 rgba(220,38,38,0.10);filter:url(#sketch);">
+        <div class="card-label" style="color:#DC2626;">Thai / Arabic</div>
+        <div class="display" style="font-size:56px;color:#111827;line-height:1.1;">100 words</div>
+        <div style="margin:16px 0;height:2px;background:#FECACA;border-radius:2px;"></div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div class="display" style="font-size:52px;color:#DC2626;">~150+</div>
+          <div style="font-size:17px;color:#6B7280;">tokens<br><span style="color:#DC2626;font-weight:700;">costly</span></div>
+        </div>
+        <div style="margin-top:10px;font-size:13px;color:#9CA3AF;">Underrepresented in training data</div>
+      </div>
+    </div>
+
+    <!-- Code + emoji extras -->
+    <div id="s4-extras" style="position:absolute;top:250px;right:60px;width:420px;opacity:0;">
+
+      <div style="background:#1E1E2E;border-radius:8px;padding:20px 24px;margin-bottom:18px;">
+        <div class="card-label" style="color:#6B7280;margin-bottom:10px;">code ≠ prose</div>
+        <div class="mono" style="font-size:16px;color:#CDD6F4;line-height:1.8;">
+          <span style="color:#89DCEB;">for</span> i <span style="color:#89DCEB;">in</span> range(<span style="color:#A6E3A1;">100</span>):
+        </div>
+        <div style="margin-top:8px;font-size:13px;color:#6B7280;">
+          Whitespace, brackets, identifiers — each may be its own token
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:2.5px solid #E5E7EB;border-radius:8px;padding:20px 24px;
+                  box-shadow:3px 3px 0 rgba(0,0,0,0.04);">
+        <div class="card-label" style="margin-bottom:12px;">emoji token cost</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+          <span style="font-size:30px;">🚀</span>
+          <span style="font-size:20px;color:#9CA3AF;">=</span>
+          <span style="background:#DBEAFE;color:#1E40AF;border:1px solid #BFDBFE;
+                       border-radius:20px;padding:3px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;">1 token</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:30px;">🏳️‍🌈</span>
+          <span style="font-size:20px;color:#9CA3AF;">=</span>
+          <span style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;
+                       border-radius:20px;padding:3px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;">3 tokens</span>
+          <span style="font-size:12px;color:#9CA3AF;font-style:italic;">flag + zwj + rainbow</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="s4-callout" style="position:absolute;bottom:80px;left:160px;right:160px;text-align:center;opacity:0;">
+      <div class="display" style="font-size:40px;color:#111827;letter-spacing:-0.5px;">
+        Word count and token count are <span style="color:#DC2626;">different numbers.</span>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 5 — COST  (102.5 – 127s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s5" class="scene">
+
+    <div id="s5-tag"  class="tag"  style="position:absolute;top:68px;left:160px;opacity:0;">API Pricing Model</div>
+    <div id="s5-head" class="display"
+         style="position:absolute;top:104px;left:160px;font-size:80px;color:#111827;letter-spacing:-2px;opacity:0;">
+      Tokens cost money.
+    </div>
+    <svg id="s5-uline" viewBox="0 0 560 16"
+         style="position:absolute;top:202px;left:160px;width:560px;height:16px;">
+      <path id="s5-upath" d="M4,12 L556,8" stroke="#2563EB" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="560" stroke-dashoffset="560"/>
+    </svg>
+
+    <!-- Input meter -->
+    <div id="s5-in" style="position:absolute;top:280px;left:160px;width:640px;opacity:0;">
+      <div class="card card-neutral" style="position:static;filter:url(#sketch);">
+        <div class="card-label">input tokens</div>
+        <div style="display:flex;align-items:center;gap:20px;margin-top:6px;">
+          <div style="flex:1;">
+            <div style="height:36px;background:#EFF6FF;border-radius:6px;overflow:hidden;border:2px solid #BFDBFE;">
+              <div id="s5-ibar" style="height:100%;width:0%;background:linear-gradient(90deg,#2563EB,#3B82F6);border-radius:4px;"></div>
+            </div>
+          </div>
+          <div class="display" style="font-size:26px;color:#2563EB;white-space:nowrap;">$0.002 / 1K</div>
+        </div>
+        <div style="margin-top:10px;font-size:14px;color:#6B7280;">
+          System prompt + documents + conversation history + your message
+        </div>
+      </div>
+    </div>
+
+    <!-- Output meter -->
+    <div id="s5-out" style="position:absolute;top:464px;left:160px;width:640px;opacity:0;">
+      <div style="background:#FFFBEB;border:3.5px solid #F59E0B;border-radius:8px;padding:36px 44px;
+                  box-shadow:5px 5px 0 rgba(245,158,11,0.10);filter:url(#sketch);">
+        <div class="card-label" style="color:#92400E;">output tokens</div>
+        <div style="display:flex;align-items:center;gap:20px;margin-top:6px;">
+          <div style="flex:1;">
+            <div style="height:36px;background:#FFFBEB;border-radius:6px;overflow:hidden;border:2px solid #FDE68A;">
+              <div id="s5-obar" style="height:100%;width:0%;background:linear-gradient(90deg,#F59E0B,#FBBF24);border-radius:4px;"></div>
+            </div>
+          </div>
+          <div class="display" style="font-size:26px;color:#D97706;white-space:nowrap;">$0.006 / 1K</div>
+        </div>
+        <div style="margin-top:10px;font-size:14px;color:#92400E;">
+          Generated response — often billed at a <strong>higher rate</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: key point -->
+    <div id="s5-point" style="position:absolute;top:280px;left:920px;width:840px;opacity:0;">
+      <div class="card card-blue" style="position:static;filter:url(#sketch);">
+        <div class="card-label" style="color:#1E40AF;">why it matters at scale</div>
+        <div style="font-size:21px;color:#111827;line-height:1.8;margin-bottom:22px;">
+          Input and output billed <strong>separately</strong>, often at different rates.
+          Long documents + verbose responses = consumption compounds <strong>quickly.</strong>
+        </div>
+        <div style="display:flex;gap:14px;">
+          <div style="padding:14px 22px;background:#EFF6FF;border-radius:8px;border:1.5px solid #BFDBFE;">
+            <div style="font-size:11px;color:#1E40AF;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">NOT</div>
+            <div style="font-size:15px;color:#111827;">Premature optimization</div>
+          </div>
+          <div style="padding:14px 22px;background:#1E3A5F;border-radius:8px;">
+            <div style="font-size:11px;color:#93C5FD;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">IT IS</div>
+            <div style="font-size:15px;color:#FFFFFF;">Direct input to unit economics</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="s5-callout" style="position:absolute;bottom:80px;left:160px;right:160px;text-align:center;opacity:0;">
+      <div class="display" style="font-size:38px;color:#111827;letter-spacing:-0.5px;">
+        Token efficiency is not optional at scale.
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 6 — CONTEXT WINDOW  (126.5 – 159s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s6" class="scene">
+
+    <div id="s6-tag"  class="tag"  style="position:absolute;top:68px;left:160px;opacity:0;">Hard Engineering Constraint</div>
+    <div id="s6-head" class="display"
+         style="position:absolute;top:104px;left:160px;font-size:80px;color:#111827;letter-spacing:-2px;opacity:0;">
+      The Context Window
+    </div>
+    <svg id="s6-uline" viewBox="0 0 640 16"
+         style="position:absolute;top:202px;left:160px;width:640px;height:16px;">
+      <path id="s6-upath" d="M4,12 L636,8" stroke="#2563EB" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="640" stroke-dashoffset="640"/>
+    </svg>
+
+    <div id="s6-128k" style="position:absolute;top:96px;right:160px;text-align:right;opacity:0;">
+      <div class="display" style="font-size:96px;color:#DBEAFE;letter-spacing:-4px;line-height:1;">128K</div>
+      <div style="font-size:15px;color:#9CA3AF;margin-top:-8px;">tokens — maximum context</div>
+    </div>
+
+    <!-- Context bar -->
+    <div style="position:absolute;top:288px;left:120px;right:120px;">
+      <div style="position:relative;height:72px;background:#F3F4F6;border-radius:10px;border:2px solid #E5E7EB;overflow:hidden;">
+        <div id="s6-seg1" style="position:absolute;left:0;top:0;bottom:0;width:0%;background:#1E3A5F;border-radius:8px 0 0 8px;"></div>
+        <div id="s6-seg2" style="position:absolute;left:12%;top:0;bottom:0;width:0%;background:#2563EB;"></div>
+        <div id="s6-seg3" style="position:absolute;left:40%;top:0;bottom:0;width:0%;background:#3B82F6;"></div>
+        <div id="s6-seg4" style="position:absolute;left:65%;top:0;bottom:0;width:0%;background:#93C5FD;"></div>
+        <div id="s6-ovf"  style="position:absolute;right:0;top:0;bottom:0;width:0%;opacity:0;
+                                  background:repeating-linear-gradient(-45deg,#DC2626,#DC2626 4px,#FEE2E2 4px,#FEE2E2 12px);
+                                  border-radius:0 8px 8px 0;"></div>
+      </div>
+
+      <div style="display:flex;margin-top:12px;gap:4px;">
+        <div id="s6-l1" style="flex:0 0 12%;opacity:0;">
+          <div style="font-size:11px;font-weight:700;color:#1E3A5F;text-transform:uppercase;letter-spacing:.06em;">System<br>Prompt</div>
+        </div>
+        <div id="s6-l2" style="flex:0 0 28%;opacity:0;">
+          <div style="font-size:11px;font-weight:700;color:#2563EB;text-transform:uppercase;letter-spacing:.06em;">Retrieved<br>Documents</div>
+        </div>
+        <div id="s6-l3" style="flex:0 0 25%;opacity:0;">
+          <div style="font-size:11px;font-weight:700;color:#3B82F6;text-transform:uppercase;letter-spacing:.06em;">Conversation<br>History</div>
+        </div>
+        <div id="s6-l4" style="flex:0 0 20%;opacity:0;">
+          <div style="font-size:11px;font-weight:700;color:#60A5FA;text-transform:uppercase;letter-spacing:.06em;">Response</div>
+        </div>
+        <div id="s6-l5" style="flex:0 0 15%;opacity:0;">
+          <div style="font-size:11px;font-weight:700;color:#DC2626;text-transform:uppercase;letter-spacing:.06em;">OVERFLOW ⚠</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exceed callout -->
+    <div id="s6-exceed" style="position:absolute;top:496px;left:120px;right:120px;opacity:0;">
+      <div style="background:#FEF2F2;border:2.5px solid #FECACA;border-radius:8px;padding:20px 32px;
+                  display:flex;gap:20px;align-items:center;">
+        <span style="font-size:28px;flex-shrink:0;">⚠️</span>
+        <div style="font-size:18px;color:#111827;line-height:1.65;">
+          Exceed the limit → model <strong>truncates</strong>, <strong>errors</strong>,
+          or <strong>silently drops earlier content.</strong>
+          It will not warn you.
+        </div>
+      </div>
+    </div>
+
+    <!-- Hard constraint stamp -->
+    <div id="s6-stamp" style="position:absolute;bottom:120px;left:50%;transform:translateX(-50%) rotate(-1.5deg);
+                               white-space:nowrap;opacity:0;">
+      <div style="border:4px solid #DC2626;border-radius:8px;padding:16px 40px;display:inline-block;">
+        <div class="display" style="font-size:40px;color:#DC2626;letter-spacing:3px;text-transform:uppercase;">
+          Hard Engineering Constraint
+        </div>
+        <div style="font-size:15px;color:#6B7280;text-align:center;margin-top:4px;letter-spacing:1px;text-transform:uppercase;">
+          Not a soft guideline
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 7 — MODEL BEHAVIOR  (158.5 – 190s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s7" class="scene">
+
+    <div id="s7-tag"  class="tag"  style="position:absolute;top:68px;left:160px;opacity:0;">How The Model Sees Language</div>
+    <div id="s7-head" class="display"
+         style="position:absolute;top:104px;left:160px;font-size:72px;color:#111827;letter-spacing:-2px;opacity:0;">
+      Tokens, Not Characters.
+    </div>
+    <svg id="s7-uline" viewBox="0 0 560 16"
+         style="position:absolute;top:200px;left:160px;width:560px;height:16px;">
+      <path id="s7-upath" d="M4,12 L556,8" stroke="#2563EB" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="560" stroke-dashoffset="560"/>
+    </svg>
+
+    <!-- Attention diagram -->
+    <div id="s7-attn" style="position:absolute;top:252px;left:160px;width:820px;opacity:0;">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <div class="card-label" style="font-size:10px;color:#9CA3AF;width:90px;flex-shrink:0;">tokens</div>
+        <span class="tok" style="font-size:20px;">The</span>
+        <span class="tok" style="font-size:20px;">model</span>
+        <span class="tok" style="font-size:20px;">att</span>
+        <span class="tok" style="font-size:20px;">ends</span>
+        <span class="tok" style="font-size:20px;">to</span>
+        <span class="tok" style="font-size:20px;">tokens</span>
+      </div>
+      <svg id="s7-arrows" viewBox="0 0 760 72" style="width:760px;height:72px;display:block;margin-left:98px;opacity:0;">
+        <path d="M55,2 Q55,36 220,64"  stroke="#2563EB" stroke-width="1.5" fill="none" opacity=".55" stroke-dasharray="3 3"/>
+        <path d="M55,2 Q55,46 340,64"  stroke="#2563EB" stroke-width="1.5" fill="none" opacity=".35" stroke-dasharray="3 3"/>
+        <path d="M220,2 Q200,36 55,64" stroke="#3B82F6" stroke-width="1.5" fill="none" opacity=".45" stroke-dasharray="3 3"/>
+        <path d="M340,2 Q340,36 455,64" stroke="#2563EB" stroke-width="1.5" fill="none" opacity=".55" stroke-dasharray="3 3"/>
+        <path d="M455,2 Q380,36 220,64" stroke="#3B82F6" stroke-width="1.5" fill="none" opacity=".40" stroke-dasharray="3 3"/>
+        <path d="M580,2 Q480,46 110,64"  stroke="#2563EB" stroke-width="1.0" fill="none" opacity=".28" stroke-dasharray="3 3"/>
+      </svg>
+      <div style="margin-top:8px;font-size:16px;color:#6B7280;font-style:italic;margin-left:98px;">
+        The transformer attends to tokens — not to words, syllables, or characters.
+      </div>
+    </div>
+
+    <!-- No spelling -->
+    <div id="s7-spell" style="position:absolute;top:480px;left:160px;width:680px;opacity:0;">
+      <div style="background:#FFFBEB;border:2.5px solid #FDE68A;border-radius:8px;padding:24px 32px;">
+        <div class="card-label" style="color:#92400E;margin-bottom:10px;">no native sense of spelling</div>
+        <div style="font-size:18px;color:#111827;line-height:1.6;">
+          "strawberry" →
+          <span class="tok" style="font-size:18px;padding:3px 11px;">straw</span>
+          <span class="tok" style="font-size:18px;padding:3px 11px;">berry</span>
+        </div>
+        <div style="margin-top:10px;font-size:14px;color:#92400E;">
+          The model doesn't see individual letters.
+        </div>
+      </div>
+    </div>
+
+    <!-- Failure example -->
+    <div id="s7-fail" style="position:absolute;top:252px;right:100px;width:780px;opacity:0;">
+      <div style="background:#FEF2F2;border:3.5px solid #DC2626;border-radius:8px;padding:36px 44px;
+                  box-shadow:5px 5px 0 rgba(220,38,38,0.10);filter:url(#sketch);">
+        <div class="card-label" style="color:#DC2626;">why models fail at character tasks</div>
+
+        <div style="font-size:17px;color:#111827;line-height:1.7;margin-bottom:16px;">
+          <span style="font-style:italic;color:#6B7280;">Question:</span><br>
+          "How many letter <strong>'r'</strong>s are in <strong>'strawberry'</strong>?"
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:14px;
+                    background:#FFFFFF;border-radius:6px;border:1.5px solid #FECACA;margin-bottom:14px;">
+          <span style="font-size:20px;">🤖</span>
+          <div>
+            <div style="font-size:13px;color:#9CA3AF;margin-bottom:4px;">Model answers:</div>
+            <div class="display" style="font-size:22px;color:#DC2626;">"2"</div>
+            <div style="font-size:12px;color:#9CA3AF;margin-top:2px;">(correct answer: 3)</div>
+          </div>
+        </div>
+
+        <div id="s7-reason" style="font-size:15px;color:#6B7280;line-height:1.7;opacity:0;">
+          Not because it's unintelligent —<br>
+          but because <strong style="color:#111827;">tokens don't preserve character-level information.</strong>
+          <br>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;background:#F9FAFB;padding:2px 6px;border-radius:3px;">straw</span>
+          +
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;background:#F9FAFB;padding:2px 6px;border-radius:3px;">berry</span>
+          — the model cannot introspect individual letters.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 8 — PRACTICAL DESIGN RULES  (189.5 – 222s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s8" class="scene">
+
+    <div id="s8-tag"  class="tag"  style="position:absolute;top:68px;left:160px;opacity:0;">Design Principles</div>
+    <div id="s8-head" class="display"
+         style="position:absolute;top:104px;left:160px;font-size:68px;color:#111827;letter-spacing:-2px;opacity:0;">
+      What This Means in Practice
+    </div>
+    <svg id="s8-uline" viewBox="0 0 840 16"
+         style="position:absolute;top:196px;left:160px;width:840px;height:16px;">
+      <path id="s8-upath" d="M4,12 L836,8" stroke="#2563EB" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="840" stroke-dashoffset="840"/>
+    </svg>
+
+    <!-- 2×2 rule cards -->
+    <div style="position:absolute;top:240px;left:120px;right:120px;display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+      <div id="s8-c1" style="opacity:0;">
+        <div style="background:#1E3A5F;border-radius:10px;padding:32px 40px;height:200px;
+                    display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            <div class="card-label" style="color:#93C5FD;margin-bottom:10px;">Rule 01 — Compress</div>
+            <div class="display" style="font-size:32px;color:#FFFFFF;letter-spacing:-0.5px;line-height:1.25;">
+              Shorter prompts.<br>Same information.
+            </div>
+          </div>
+          <div style="font-size:14px;color:#93C5FD;">Reduces cost and latency. Prompt compression is a real skill.</div>
+        </div>
+      </div>
+
+      <div id="s8-c2" style="opacity:0;">
+        <div style="background:#FFFFFF;border:3.5px solid #E5E7EB;border-radius:10px;padding:32px 40px;height:200px;
+                    display:flex;flex-direction:column;justify-content:space-between;box-shadow:5px 5px 0 rgba(0,0,0,0.05);">
+          <div>
+            <div class="card-label" style="margin-bottom:10px;">Rule 02 — Format Costs</div>
+            <div class="display" style="font-size:32px;color:#111827;letter-spacing:-0.5px;line-height:1.25;">
+              JSON &gt; plain text.<br>XML &gt; plain text.
+            </div>
+          </div>
+          <div style="font-size:14px;color:#DC2626;font-weight:600;">Same data — structured formats cost more tokens.</div>
+        </div>
+      </div>
+
+      <div id="s8-c3" style="opacity:0;">
+        <div style="background:#FFFFFF;border:3.5px solid #E5E7EB;border-radius:10px;padding:32px 40px;height:200px;
+                    display:flex;flex-direction:column;justify-content:space-between;box-shadow:5px 5px 0 rgba(0,0,0,0.05);">
+          <div>
+            <div class="card-label" style="margin-bottom:10px;">Rule 03 — Budget by Language</div>
+            <div class="display" style="font-size:32px;color:#111827;letter-spacing:-0.5px;line-height:1.25;">
+              Non-Latin scripts<br>cost more.
+            </div>
+          </div>
+          <div style="font-size:14px;color:#6B7280;">Multilingual apps: allocate extra budget for Thai, Arabic, CJK.</div>
+        </div>
+      </div>
+
+      <div id="s8-c4" style="opacity:0;">
+        <div style="background:#2563EB;border-radius:10px;padding:32px 40px;height:200px;
+                    display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            <div class="card-label" style="color:#BFDBFE;margin-bottom:10px;">Rule 04 — Track Context</div>
+            <div class="display" style="font-size:32px;color:#FFFFFF;letter-spacing:-0.5px;line-height:1.25;">
+              You have to<br>track it.
+            </div>
+          </div>
+          <div style="font-size:14px;color:#BFDBFE;">The model cannot signal it's losing context. You must track token count.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="s8-final" style="position:absolute;bottom:68px;left:160px;right:160px;text-align:center;opacity:0;">
+      <div style="font-size:21px;color:#6B7280;line-height:1.7;">
+        When debugging unexpected behavior — forgotten instructions, incomplete reasoning —
+        <strong style="color:#111827;">check your token count first.</strong>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 9 — CONCLUSION  (221.5 – 249s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s9" class="scene">
+
+    <div id="s9-tag" class="tag"
+         style="position:absolute;top:68px;left:50%;transform:translateX(-50%);white-space:nowrap;opacity:0;">
+      The Fundamental Unit
+    </div>
+
+    <div id="s9-head" style="position:absolute;top:108px;left:50%;transform:translateX(-50%);
+                              text-align:center;width:1400px;opacity:0;">
+      <div class="display" style="font-size:56px;color:#111827;letter-spacing:-1.5px;line-height:1.15;">
+        Tokens determine cost, bound context,<br>and define how the model represents language.
+      </div>
+    </div>
+
+    <!-- Pipeline recap -->
+    <div id="s9-pipe" style="position:absolute;top:350px;left:50%;transform:translateX(-50%);
+                              display:flex;align-items:center;gap:0;opacity:0;">
+
+      <div id="s9-p1" style="text-align:center;opacity:0;">
+        <div style="background:#F3F4F6;border:2px solid #D1D5DB;border-radius:8px;padding:14px 22px;min-width:130px;">
+          <div style="font-size:10px;color:#9CA3AF;font-family:monospace;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">text</div>
+          <div class="mono" style="font-size:18px;color:#111827;">"Hello"</div>
+        </div>
+        <div style="margin-top:7px;font-size:11px;color:#6B7280;">Cost</div>
+      </div>
+
+      <svg viewBox="0 0 48 24" style="width:48px;height:24px;flex-shrink:0;">
+        <path d="M0,12 L40,12" stroke="#D1D5DB" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#arr-dark)"/>
+      </svg>
+
+      <div id="s9-p2" style="text-align:center;opacity:0;">
+        <div style="background:#EFF6FF;border:2px solid #2563EB;border-radius:8px;padding:14px 22px;min-width:150px;">
+          <div style="font-size:10px;color:#2563EB;font-family:monospace;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">tokens</div>
+          <div style="display:flex;gap:4px;justify-content:center;">
+            <span class="tok" style="font-size:15px;padding:2px 8px;">Hell</span>
+            <span class="tok" style="font-size:15px;padding:2px 8px;">o</span>
+          </div>
+        </div>
+        <div style="margin-top:7px;font-size:11px;color:#6B7280;">Context</div>
+      </div>
+
+      <svg viewBox="0 0 48 24" style="width:48px;height:24px;flex-shrink:0;">
+        <path d="M0,12 L40,12" stroke="#D1D5DB" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#arr-dark)"/>
+      </svg>
+
+      <div id="s9-p3" style="text-align:center;opacity:0;">
+        <div style="background:#ECFDF5;border:2px solid #10B981;border-radius:8px;padding:14px 22px;min-width:150px;">
+          <div style="font-size:10px;color:#047857;font-family:monospace;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">integer IDs</div>
+          <div class="mono" style="font-size:16px;color:#111827;">15496, 995</div>
+        </div>
+        <div style="margin-top:7px;font-size:11px;color:#6B7280;">Representation</div>
+      </div>
+
+      <svg viewBox="0 0 48 24" style="width:48px;height:24px;flex-shrink:0;">
+        <path d="M0,12 L40,12" stroke="#D1D5DB" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#arr-dark)"/>
+      </svg>
+
+      <div id="s9-p4" style="text-align:center;opacity:0;">
+        <div style="background:#FFFBEB;border:2px solid #F59E0B;border-radius:8px;padding:14px 22px;min-width:170px;">
+          <div style="font-size:10px;color:#92400E;font-family:monospace;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">embeddings</div>
+          <div class="mono" style="font-size:13px;color:#111827;">[0.23, −0.87, ...]</div>
+        </div>
+        <div style="margin-top:7px;font-size:11px;color:#6B7280;">Language</div>
+      </div>
+
+      <svg viewBox="0 0 48 24" style="width:48px;height:24px;flex-shrink:0;">
+        <path d="M0,12 L40,12" stroke="#D1D5DB" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#arr-dark)"/>
+      </svg>
+
+      <div id="s9-p5" style="text-align:center;opacity:0;">
+        <div id="s9-nn" style="background:#F3F4F6;border:2px solid #D1D5DB;border-radius:8px;padding:14px 22px;min-width:180px;opacity:0.3;">
+          <div style="font-size:10px;color:#9CA3AF;font-family:monospace;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">neural network</div>
+          <div style="font-size:32px;text-align:center;">🧠</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="s9-entry" style="position:absolute;top:556px;left:50%;transform:translateX(-50%);
+                               text-align:center;opacity:0;">
+      <div style="font-size:20px;color:#6B7280;font-style:italic;">
+        Tokenization is only the <strong style="color:#2563EB;">entry point.</strong>
+      </div>
+    </div>
+
+    <div id="s9-next" style="position:absolute;bottom:100px;left:50%;transform:translateX(-50%);
+                              text-align:center;width:1200px;opacity:0;">
+      <svg id="s9-rule" viewBox="0 0 1200 4" style="width:1200px;height:4px;display:block;margin-bottom:22px;">
+        <path id="s9-rulep" d="M0,2 L1200,2" stroke="#E5E7EB" stroke-width="2" fill="none"
+              stroke-dasharray="1200" stroke-dashoffset="1200"/>
+      </svg>
+      <div class="display" style="font-size:32px;color:#111827;letter-spacing:-0.5px;">
+        Once text becomes embeddings, it is handed off to the neural network.
+      </div>
+      <div style="margin-top:12px;font-size:20px;color:#2563EB;font-weight:600;">
+        That is where the next module begins. →
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /#root -->
+
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+<script>
+  const tl = gsap.timeline({ paused: true });
+  const ft   = (el, f, t, pos) => tl.fromTo(el, f, t, pos);
+  const draw = (id, len, dur, pos, ease) =>
+    tl.to(id, { strokeDashoffset: 0, duration: dur, ease: ease || 'power2.inOut' }, pos);
+  const bar  = (id, w, dur, pos) =>
+    tl.to(id, { width: w + '%', duration: dur, ease: 'power2.out' }, pos);
+
+  // All GSAP times are actual audio times (vo.currentTime).
+  // Derived: actual = section_start + (transcript_time - section_tr_start) * ratio
+  // Section params: s01(0,0.04,0.9962) s02(18.58,16.72,0.9199) s03(43.17,41.32,0.9472)
+  //                 s04(80.01,78.14,0.9333) s05(106.59,104.74,0.9224)
+  //                 s06(131.91,130.06,0.9397) s07(164.40,162.54,0.9263)
+  //                 s08(191.04,189.18,0.9384) s09(222.31,220.42,0.9259)
+
+
+  // ─── SCENE 1 — WHAT IS A TOKEN  (0–16.6s) ───────────────────────────────────
+  // audio: "Language"≈0.04 | "tokens,"≈4.3 | "Tokenization"≈9.5 | "anything."≈16.6
+  tl.set('#s1', { opacity: 1 }, 0);
+
+  ft('#s1-def',  { opacity:0, y:16 }, { opacity:1, y:0, duration:0.7, ease:'power3.out' },  0.6);
+
+  tl.to('#s1-full',  { opacity:0, duration:0.2 }, 4.1);
+  ft('#s1-split',    { opacity:0 }, { opacity:1, duration:0 }, 4.3);
+  ft('#s1-tok1',     { opacity:0, x:36 }, { opacity:1, x:0, duration:0.5, ease:'power3.out' }, 4.35);
+  ft('#s1-divline',  { opacity:0 }, { opacity:1, duration:0.3 }, 4.6);
+  ft('#s1-tok2',     { opacity:0, x:-36 }, { opacity:1, x:0, duration:0.5, ease:'power3.out' }, 4.6);
+
+  ft('#s1-label', { opacity:0, y:14 }, { opacity:1, y:0, duration:0.6, ease:'power2.out' }, 9.5);
+
+  tl.to('#s1', { opacity:0, duration:0.4 }, 16.1);
+  tl.to('#flash', { opacity:0.4, duration:0.07 }, 16.6);
+  tl.to('#flash', { opacity:0,   duration:0.25 }, 16.67);
+
+
+  // ─── SCENE 2 — WHY TOKENIZATION EXISTS  (16.7–41.2s) ───────────────────────
+  // audio: "Computers"≈18.58 | "To pass language"≈23.0 | "converted"≈26.7
+  //        "Tokenization is that"≈28.3 | "projected"≈36.1 | "model computes on"≈39.7
+  tl.set('#s2', { opacity: 1 }, 16.65);
+
+  ft('#s2-tag',  { opacity:0 },       { opacity:1, duration:0.4 },                         16.8);
+  ft('#s2-head', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.7, ease:'power3.out' }, 17.0);
+
+  ft('#s2-n1',  { opacity:0, x:-18 }, { opacity:1, x:0, duration:0.5, ease:'power2.out' }, 23.0);
+  ft('#s2-a1',  { opacity:0 },        { opacity:1, duration:0.3 },                          26.7);
+  ft('#s2-n2',  { opacity:0, x:-18 }, { opacity:1, x:0, duration:0.5, ease:'power2.out' }, 26.9);
+  ft('#s2-a2',  { opacity:0 },        { opacity:1, duration:0.3 },                          28.3);
+  ft('#s2-n3',  { opacity:0, x:-18 }, { opacity:1, x:0, duration:0.5, ease:'power2.out' }, 28.5);
+  ft('#s2-a3',  { opacity:0 },        { opacity:1, duration:0.3 },                          36.1);
+  ft('#s2-n4',  { opacity:0, x:-18 }, { opacity:1, x:0, duration:0.5, ease:'power2.out' }, 36.3);
+  ft('#s2-insight', { opacity:0, y:12 }, { opacity:1, y:0, duration:0.6, ease:'power2.out' }, 38.4);
+  ft('#s2-a4',  { opacity:0 },        { opacity:1, duration:0.3 },                          39.7);
+  ft('#s2-n5',  { opacity:0, x:-18 }, { opacity:1, x:0, duration:0.5, ease:'power2.out' }, 39.9);
+
+  tl.to('#s2', { opacity:0, duration:0.4 }, 40.7);
+  tl.to('#flash', { opacity:0.4, duration:0.07 }, 41.2);
+  tl.to('#flash', { opacity:0,   duration:0.25 }, 41.27);
+
+
+  // ─── SCENE 3 — HOW BPE WORKS  (41.3–78.0s) ──────────────────────────────────
+  // audio: "The most widely"≈43.17 | "byte pair encoding"≈46.8 | "starts"≈49.3
+  //        "iteratively merges"≈51.4 | "single tokens"≈54.3 | "fixed size"≈57.0
+  //        "thirty thousand"≈59.8 | "Common English"≈62.6 | "Rare or"≈65.9
+  //        "vocabulary is learned"≈73.5
+  tl.set('#s3', { opacity: 1 }, 41.3);
+
+  ft('#s3-tag',  { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 41.5);
+  ft('#s3-name', { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 41.8);
+  draw('#s3-upath', 620, 0.7, 46.8);
+
+  ft('#s3-s1',   { opacity:0, x:-14 }, { opacity:1, x:0, duration:0.5, ease:'power2.out' }, 49.3);
+  ft('#s3-s2',   { opacity:0, x:-14 }, { opacity:1, x:0, duration:0.5, ease:'power2.out' }, 51.4);
+  ft('#s3-s3',   { opacity:0, x:-14 }, { opacity:1, x:0, duration:0.5, ease:'power2.out' }, 54.3);
+  ft('#s3-s4',   { opacity:0, x:-14 }, { opacity:1, x:0, duration:0.5, ease:'power2.out' }, 57.0);
+  // vocab badge fires at "typically between" (tr≈57.92→A=58.9), before "thirty thousand" is spoken
+  ft('#s3-vocab',{ opacity:0, y:10 },  { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 58.5);
+  ft('#s3-ex1',  { opacity:0, x:18 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 62.6);
+  // ex2 fires when "The word tokenization itself tokenizes" (tr≈68.14→A=68.6), not at "Rare or technical"
+  ft('#s3-ex2',  { opacity:0, x:18 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 68.5);
+  ft('#s3-badge',{ opacity:0, y:14 }, { opacity:1, y:0, duration:0.5,  ease:'back.out(1.3)' }, 73.5);
+
+  tl.to('#s3', { opacity:0, duration:0.4 }, 77.5);
+  tl.to('#flash', { opacity:0.4, duration:0.07 }, 78.0);
+  tl.to('#flash', { opacity:0,   duration:0.25 }, 78.07);
+
+
+  // ─── SCENE 4 — TOKENS ARE NOT WORDS  (78.1–104.6s) ──────────────────────────
+  // audio: "Tokens are not words"≈80.01 | "100 words of English"≈83.4
+  //        "Thai or Arabic"≈88.5 | "Code behaves"≈96.8 | "Word count"≈102.0
+  tl.set('#s4', { opacity: 1 }, 78.1);
+
+  ft('#s4-tag',  { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 78.2);
+  ft('#s4-head', { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 78.4);
+  draw('#s4-upath', 540, 0.65, 79.1);
+
+  ft('#s4-c1',     { opacity:0, x:-22 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 83.4);
+  ft('#s4-vs',     { opacity:0 },        { opacity:1, duration:0.4 },                          88.5);
+  ft('#s4-c2',     { opacity:0, x:22 },  { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 88.7);
+  ft('#s4-extras', { opacity:0, x:18 },  { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 96.8);
+  ft('#s4-callout',{ opacity:0, y:16 },  { opacity:1, y:0, duration:0.6, ease:'power3.out' }, 102.0);
+
+  tl.to('#s4', { opacity:0, duration:0.4 }, 104.1);
+  tl.to('#flash', { opacity:0.4, duration:0.07 }, 104.6);
+  tl.to('#flash', { opacity:0,   duration:0.25 }, 104.67);
+
+
+  // ─── SCENE 5 — COST  (104.7–130.0s) ─────────────────────────────────────────
+  // audio: "API pricing"≈106.59 | "denominated in tokens"≈110.5
+  //        "often at different rates"≈114.7 | "passing long documents"≈116.4
+  //        "Token efficiency"≈121.9
+  tl.set('#s5', { opacity: 1 }, 104.7);
+
+  ft('#s5-tag',  { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 104.9);
+  ft('#s5-head', { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 105.1);
+  draw('#s5-upath', 560, 0.65, 105.8);
+
+  // input card: fire before "denominated in tokens" (A≈110.5) so it's visible on that word
+  ft('#s5-in',  { opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'power2.out' }, 109.5);
+  bar('#s5-ibar', 65, 1.0, 110.1);
+  // output card: fire when "output" is spoken (tr=111.44→A=112.77) — was 2s late at 114.7
+  ft('#s5-out', { opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'power2.out' }, 112.5);
+  bar('#s5-obar', 40, 1.0, 113.1);
+  ft('#s5-point',   { opacity:0, x:18 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 116.4);
+  ft('#s5-callout', { opacity:0, y:14 }, { opacity:1, y:0, duration:0.6, ease:'power3.out' }, 121.9);
+
+  tl.to('#s5', { opacity:0, duration:0.4 }, 129.4);
+  tl.to('#flash', { opacity:0.4, duration:0.07 }, 129.9);
+  tl.to('#flash', { opacity:0,   duration:0.25 }, 129.97);
+
+
+  // ─── SCENE 6 — CONTEXT WINDOW  (130.0–162.4s) ───────────────────────────────
+  // audio: "Every model"≈131.91 | "maximum number of tokens"≈135.8
+  //        "system prompt"≈150.8 | "retrieved documents"≈151.5
+  //        "conversation history"≈152.8 | "structured output"≈154.2
+  //        "Context fills faster"≈156.1 | "hard engineering constraint"≈158.9
+  tl.set('#s6', { opacity: 1 }, 130.0);
+
+  ft('#s6-tag',  { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 130.2);
+  ft('#s6-head', { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 130.4);
+  draw('#s6-upath', 640, 0.7, 131.1);
+  ft('#s6-128k', { opacity:0 }, { opacity:1, duration:0.6 }, 135.8);
+
+  bar('#s6-seg1', 12, 0.6, 150.8);
+  ft('#s6-l1', { opacity:0 }, { opacity:1, duration:0.3 }, 151.2);
+  bar('#s6-seg2', 28, 0.7, 151.5);
+  ft('#s6-l2', { opacity:0 }, { opacity:1, duration:0.3 }, 151.9);
+  bar('#s6-seg3', 25, 0.7, 152.8);
+  ft('#s6-l3', { opacity:0 }, { opacity:1, duration:0.3 }, 153.2);
+  bar('#s6-seg4', 20, 0.6, 154.2);
+  ft('#s6-l4', { opacity:0 }, { opacity:1, duration:0.3 }, 154.6);
+
+  ft('#s6-ovf',    { opacity:0, width:'0%' }, { opacity:1, width:'15%', duration:0.7, ease:'power2.out' }, 156.1);
+  ft('#s6-l5',     { opacity:0 }, { opacity:1, duration:0.3 }, 156.6);
+  ft('#s6-exceed', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.6, ease:'power2.out' }, 156.9);
+  ft('#s6-stamp', { opacity:0, scale:0.88 }, { opacity:1, scale:1, duration:0.5, ease:'back.out(1.4)' }, 158.9);
+
+  tl.to('#s6', { opacity:0, duration:0.4 }, 161.9);
+  tl.to('#flash', { opacity:0.4, duration:0.07 }, 162.4);
+  tl.to('#flash', { opacity:0,   duration:0.25 }, 162.47);
+
+
+  // ─── SCENE 7 — MODEL BEHAVIOR  (162.5–189.0s) ───────────────────────────────
+  // audio: "Tokens are the unit"≈164.40 | "model attends to tokens"≈170.0
+  //        "syllables or characters"≈172.1 | "native sense of spelling"≈174.1
+  //        "Ask a model to count"≈175.8 | "unintelligent"≈181.9
+  tl.set('#s7', { opacity: 1 }, 162.5);
+
+  ft('#s7-tag',  { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 162.7);
+  ft('#s7-head', { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 162.9);
+  draw('#s7-upath', 560, 0.65, 163.6);
+
+  ft('#s7-attn',   { opacity:0, y:16 }, { opacity:1, y:0, duration:0.6, ease:'power2.out' }, 170.0);
+  ft('#s7-arrows', { opacity:0 },       { opacity:1, duration:0.6 },                          172.1);
+  ft('#s7-spell',  { opacity:0, y:14 }, { opacity:1, y:0, duration:0.55, ease:'power2.out' }, 174.1);
+  ft('#s7-fail',   { opacity:0, x:18 }, { opacity:1, x:0, duration:0.6,  ease:'power2.out' }, 175.8);
+  ft('#s7-reason', { opacity:0 },       { opacity:1, duration:0.5 },                          181.9);
+
+  tl.to('#s7', { opacity:0, duration:0.4 }, 188.5);
+  tl.to('#flash', { opacity:0.4, duration:0.07 }, 189.0);
+  tl.to('#flash', { opacity:0,   duration:0.25 }, 189.07);
+
+
+  // ─── SCENE 8 — PRACTICAL DESIGN RULES  (189.1–220.3s) ──────────────────────
+  // audio: "Several design principles"≈191.04 | "Prompt compression"≈195.2
+  //        "JSON and XML"≈200.8 | "multilingual applications"≈205.0
+  //        "check your token count"≈214.6 | "model cannot signal"≈216.2
+  tl.set('#s8', { opacity: 1 }, 189.1);
+
+  ft('#s8-tag',  { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 189.3);
+  ft('#s8-head', { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 189.6);
+  draw('#s8-upath', 840, 0.75, 190.2);
+
+  ft('#s8-c1', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.55, ease:'power2.out' },    195.2);
+  ft('#s8-c2', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.55, ease:'power2.out' },    200.8);
+  ft('#s8-c3', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.55, ease:'power2.out' },    205.0);
+  ft('#s8-c4', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.55, ease:'back.out(1.3)' }, 214.6);
+  ft('#s8-final',{ opacity:0, y:12 }, { opacity:1, y:0, duration:0.6, ease:'power2.out' },   216.2);
+
+  tl.to('#s8', { opacity:0, duration:0.4 }, 219.8);
+  tl.to('#flash', { opacity:0.4, duration:0.07 }, 220.3);
+  tl.to('#flash', { opacity:0,   duration:0.25 }, 220.37);
+
+
+  // ─── SCENE 9 — CONCLUSION  (220.4–248s) ─────────────────────────────────────
+  // audio: "Tokens are the fundamental unit"≈222.31 | "They determine cost"≈228.0
+  //        "in context"≈230.3 | "tokenization is only the entry point"≈233.6
+  //        "Once text has been converted"≈236.1 | "neural network"≈242.1
+  tl.set('#s9', { opacity: 1 }, 220.4);
+
+  ft('#s9-tag',  { opacity:0 },       { opacity:1, duration:0.5 },                          220.6);
+  ft('#s9-head', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.75, ease:'power3.out' }, 220.8);
+
+  ft('#s9-pipe', { opacity:0 }, { opacity:1, duration:0 }, 228.0);
+  ['#s9-p1','#s9-p2','#s9-p3','#s9-p4'].forEach((id, i) => {
+    ft(id, { opacity:0, y:16 }, { opacity:1, y:0, duration:0.45, ease:'power2.out' }, 228.0 + i * 0.55);
+  });
+  ft('#s9-p5',    { opacity:0, y:16 }, { opacity:1, y:0, duration:0.45, ease:'power2.out' }, 230.3);
+  ft('#s9-entry', { opacity:0 }, { opacity:1, duration:0.5 }, 233.6);
+  draw('#s9-rulep', 1200, 0.6, 236.1);
+  ft('#s9-next',  { opacity:0, y:14 }, { opacity:1, y:0, duration:0.65, ease:'power3.out' }, 236.5);
+  tl.to('#s9-nn', { opacity:1, duration:0.8, ease:'power2.out' }, 242.1);
+  tl.to('#s9-nn', { scale:1.06, duration:0.35, ease:'power2.out', yoyo:true, repeat:3 }, 243.2);
+
+
+  // ─── Timeline end marker ───────────────────────────────────────────────────
+  tl.set({}, {}, 248);
+
+  // ─── Export for preview.html ───────────────────────────────────────────────
+  window.__timelines = window.__timelines || {};
+  window.__timelines['tokens-and-tokenization'] = tl;
+
+  // ─── PLAYBACK ENGINE — synced to audio via HyperFrames ─────────────────────
+  (function () {
+    const vo = document.getElementById('vo');
+    if (!vo) return;
+    function sync()  { const d = Math.abs(tl.time() - vo.currentTime); if (d > 0.1) tl.seek(vo.currentTime); }
+    vo.addEventListener('play',       () => { tl.seek(vo.currentTime); tl.play(); });
+    vo.addEventListener('pause',      () => { tl.pause(); });
+    vo.addEventListener('seeked',     () => { tl.seek(vo.currentTime); if (!vo.paused) tl.play(); });
+    vo.addEventListener('timeupdate', sync, { passive: true });
+  })();
+</script>
+</body>
+</html>

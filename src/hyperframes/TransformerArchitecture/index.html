@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Transformer Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #FDFCFB; overflow: hidden; }
+
+    #root {
+      position: relative; width: 1920px; height: 1080px; overflow: hidden;
+      background-color: #FDFCFB;
+      background-image:
+        linear-gradient(rgba(0,0,0,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      font-family: 'DM Sans', sans-serif; color: #1C1917;
+    }
+
+    .scene { position: absolute; inset: 0; opacity: 0; }
+    .card { position: absolute; background: #FFFFFF; border-radius: 8px; padding: 36px 44px; }
+    .card-neutral { border: 3.5px solid #D0D0D0; box-shadow: 5px 5px 0 rgba(0,0,0,0.06); }
+    .card-black   { border: 3.5px solid #000000; box-shadow: 5px 5px 0 rgba(0,0,0,0.10); }
+    .card-yellow  { border: 3.5px solid #FEFB41; box-shadow: 5px 5px 0 rgba(254,251,65,0.30); }
+    .card-navy    { border: 3.5px solid #202E4A; box-shadow: 5px 5px 0 rgba(32,46,74,0.15); }
+
+    .display { font-family: 'Nunito', sans-serif; font-weight: 800; line-height: 1; }
+    .tag { font-size: 15px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase; color: #78716C; font-family: 'DM Sans', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; font-weight: 400; }
+
+    .hl { position: relative; display: inline; }
+    .hl::before { content: ''; position: absolute; inset: 0px -6px; border-radius: 3px; z-index: -1; }
+    .hl-yellow::before { background: rgba(254,251,65,0.4); }
+    .hl-navy::before   { background: rgba(32,46,74,0.10); }
+
+    /* Token box used in scenes 2, 5 */
+    .tok {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #fff; border: 2.5px solid #D0D0D0; border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 600;
+      color: #1C1917; padding: 8px 14px; min-width: 60px;
+    }
+    .tok-active { border-color: #202E4A; background: #202E4A; color: #fff; }
+    .tok-attn   { border-color: #FEFB41; background: rgba(254,251,65,0.15); }
+
+    /* Layer block used in scene 3 */
+    .layer-block {
+      background: #fff; border: 2.5px solid #202E4A; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Nunito', sans-serif; font-weight: 800; color: #202E4A;
+    }
+
+    #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 200; }
+  </style>
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden;">
+  <defs>
+    <filter id="sketch" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="3" seed="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <marker id="arrow-dark"   markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#1C1917"/></marker>
+    <marker id="arrow-yellow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#FEFB41"/></marker>
+    <marker id="arrow-navy"   markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#202E4A"/></marker>
+  </defs>
+</svg>
+
+<div id="root" data-composition-id="transformer-architecture" data-width="1920" data-height="1080">
+
+  <!-- NARRATION -->
+  <audio id="vo"
+         class="clip"
+         src="audio/narration.wav"
+         data-start="0"
+         data-volume="1"
+         data-track-index="10">
+  </audio>
+  <div id="flash"></div>
+
+  <!-- ═══════════════════════════════════════
+       SCENE 1 — INTRODUCTION  (0–22s)
+  ═══════════════════════════════════════════ -->
+  <div id="s1" class="scene">
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+      <div id="s1-tag" class="tag" style="margin-bottom:20px;opacity:0;">Architecture · Deep Dive</div>
+      <div id="s1-t1" class="display" style="font-size:92px;color:#1C1917;letter-spacing:-2px;line-height:1.0;opacity:0;">
+        The Transformer
+      </div>
+      <div id="s1-t2" class="display" style="font-size:92px;color:#1C1917;letter-spacing:-2px;line-height:1.0;opacity:0;margin-bottom:14px;">
+        Architecture
+      </div>
+      <svg id="s1-usvg" viewBox="0 0 760 18" style="width:760px;height:18px;display:block;margin:0 auto 28px;">
+        <path id="s1-uline" d="M4,12 L756,8" stroke="#FEFB41" stroke-width="4" fill="none"
+              stroke-linecap="round" stroke-dasharray="760" stroke-dashoffset="760"/>
+      </svg>
+      <div id="s1-models" style="display:flex;gap:20px;margin-bottom:28px;opacity:0;">
+        <span class="mono" style="font-size:22px;color:#78716C;background:#F5F5F4;border:2px solid #E7E5E4;border-radius:6px;padding:6px 18px;">GPT</span>
+        <span class="mono" style="font-size:22px;color:#78716C;background:#F5F5F4;border:2px solid #E7E5E4;border-radius:6px;padding:6px 18px;">Claude</span>
+        <span class="mono" style="font-size:22px;color:#78716C;background:#F5F5F4;border:2px solid #E7E5E4;border-radius:6px;padding:6px 18px;">Gemini</span>
+        <span class="mono" style="font-size:22px;color:#78716C;background:#F5F5F4;border:2px solid #E7E5E4;border-radius:6px;padding:6px 18px;">LLaMA</span>
+      </div>
+      <div id="s1-sub" style="font-size:24px;color:#78716C;max-width:900px;line-height:1.5;opacity:0;">
+        Every major language model in production. One shared architecture.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SCENE 2 — WHAT IT REPLACED  (22.5–65.5s)
+  ═══════════════════════════════════════════ -->
+  <div id="s2" class="scene">
+
+    <!-- Phase A: Sequential -->
+    <div id="s2a" style="position:absolute;inset:0;opacity:0;">
+      <div style="position:absolute;top:88px;left:120px;">
+        <div class="tag" style="margin-bottom:8px;">Before 2017 — Sequential Processing</div>
+      </div>
+
+      <!-- Word tokens row -->
+      <div id="s2a-tokens" style="position:absolute;top:200px;left:0;right:0;display:flex;justify-content:center;gap:16px;opacity:0;">
+        <div id="s2a-w1" class="tok">The</div>
+        <div id="s2a-w2" class="tok">model</div>
+        <div id="s2a-w3" class="tok">reads</div>
+        <div id="s2a-w4" class="tok">each</div>
+        <div id="s2a-w5" class="tok">word</div>
+        <div id="s2a-w6" class="tok">in</div>
+        <div id="s2a-w7" class="tok">order</div>
+      </div>
+
+      <!-- Sequential arrow flow -->
+      <svg id="s2a-arrows" viewBox="0 0 1100 60" style="position:absolute;top:310px;left:410px;width:1100px;height:60px;opacity:0;">
+        <defs>
+          <marker id="arr-seq" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L7,3 z" fill="#202E4A"/>
+          </marker>
+        </defs>
+        <line id="s2a-a1" x1="0"   y1="30" x2="120" y2="30" stroke="#202E4A" stroke-width="2.5" marker-end="url(#arr-seq)" stroke-dasharray="120" stroke-dashoffset="120"/>
+        <line id="s2a-a2" x1="140" y1="30" x2="260" y2="30" stroke="#202E4A" stroke-width="2.5" marker-end="url(#arr-seq)" stroke-dasharray="120" stroke-dashoffset="120"/>
+        <line id="s2a-a3" x1="280" y1="30" x2="400" y2="30" stroke="#202E4A" stroke-width="2.5" marker-end="url(#arr-seq)" stroke-dasharray="120" stroke-dashoffset="120"/>
+        <line id="s2a-a4" x1="420" y1="30" x2="540" y2="30" stroke="#202E4A" stroke-width="2.5" marker-end="url(#arr-seq)" stroke-dasharray="120" stroke-dashoffset="120"/>
+        <line id="s2a-a5" x1="560" y1="30" x2="680" y2="30" stroke="#202E4A" stroke-width="2.5" marker-end="url(#arr-seq)" stroke-dasharray="120" stroke-dashoffset="120"/>
+        <line id="s2a-a6" x1="700" y1="30" x2="820" y2="30" stroke="#202E4A" stroke-width="2.5" marker-end="url(#arr-seq)" stroke-dasharray="120" stroke-dashoffset="120"/>
+      </svg>
+
+      <!-- Problem labels -->
+      <div id="s2a-p1" style="position:absolute;top:430px;left:50%;transform:translateX(-50%);text-align:center;opacity:0;">
+        <span class="display" style="font-size:34px;color:#78716C;">Bottleneck: long-range dependencies are hard to learn</span>
+      </div>
+      <div id="s2a-p2" style="position:absolute;top:490px;left:50%;transform:translateX(-50%);text-align:center;opacity:0;">
+        <span style="font-size:22px;color:#A8A29E;">Training on large datasets was slow — sequences must be processed one step at a time</span>
+      </div>
+    </div>
+
+    <!-- Phase B: Self-Attention -->
+    <div id="s2b" style="position:absolute;inset:0;opacity:0;">
+      <div style="position:absolute;top:88px;left:120px;">
+        <div class="tag" style="margin-bottom:8px;">Self-Attention — Every Token Sees Every Token</div>
+      </div>
+
+      <!-- Token grid -->
+      <div id="s2b-tokens" style="position:absolute;top:200px;left:0;right:0;display:flex;justify-content:center;gap:16px;opacity:0;">
+        <div class="tok tok-attn" id="s2b-w1">The</div>
+        <div class="tok tok-attn" id="s2b-w2">model</div>
+        <div class="tok tok-attn" id="s2b-w3">reads</div>
+        <div class="tok tok-attn" id="s2b-w4">each</div>
+        <div class="tok tok-attn" id="s2b-w5">word</div>
+        <div class="tok tok-attn" id="s2b-w6">in</div>
+        <div class="tok tok-attn" id="s2b-w7">order</div>
+      </div>
+
+      <!-- Attention matrix visualization — positioned right below the tokens -->
+      <div id="s2b-matrix" style="position:absolute;top:270px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:12px;opacity:0;">
+        <div style="font-size:14px;color:#A8A29E;letter-spacing:2px;text-transform:uppercase;font-family:'DM Sans',sans-serif;">Full attention matrix — every token queries every other</div>
+        <svg id="s2b-c-all" viewBox="0 0 308 308" style="width:308px;height:308px;">
+          <defs>
+            <pattern id="attn-pat" x="0" y="0" width="44" height="44" patternUnits="userSpaceOnUse">
+              <rect x="2" y="2" width="38" height="38" rx="4" fill="#2563EB" opacity="0"/>
+            </pattern>
+          </defs>
+          <!-- 7×7 grid of attention cells -->
+          <rect id="s2b-grid-bg" x="0" y="0" width="308" height="308" rx="6" fill="#EFF6FF" opacity="0"/>
+          <!-- Row labels (tokens) -->
+          <text x="22" y="18" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono" font-size="11">T1</text>
+          <text x="66" y="18" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono" font-size="11">T2</text>
+          <text x="110" y="18" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono" font-size="11">T3</text>
+          <text x="154" y="18" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono" font-size="11">T4</text>
+          <text x="198" y="18" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono" font-size="11">T5</text>
+          <text x="242" y="18" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono" font-size="11">T6</text>
+          <text x="286" y="18" text-anchor="middle" fill="#78716C" font-family="JetBrains Mono" font-size="11">T7</text>
+          <!-- 49 filled cells = full bidirectional attention -->
+          <rect id="s2b-m00" x="2"   y="24" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m01" x="46"  y="24" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m02" x="90"  y="24" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m03" x="134" y="24" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m04" x="178" y="24" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m05" x="222" y="24" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m06" x="266" y="24" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m10" x="2"   y="68" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m11" x="46"  y="68" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m12" x="90"  y="68" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m13" x="134" y="68" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m14" x="178" y="68" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m15" x="222" y="68" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m16" x="266" y="68" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m20" x="2"   y="112" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m21" x="46"  y="112" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m22" x="90"  y="112" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m23" x="134" y="112" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m24" x="178" y="112" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m25" x="222" y="112" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m26" x="266" y="112" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m30" x="2"   y="156" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m31" x="46"  y="156" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m32" x="90"  y="156" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m33" x="134" y="156" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m34" x="178" y="156" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m35" x="222" y="156" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m36" x="266" y="156" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m40" x="2"   y="200" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m41" x="46"  y="200" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m42" x="90"  y="200" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m43" x="134" y="200" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m44" x="178" y="200" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m45" x="222" y="200" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m46" x="266" y="200" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m50" x="2"   y="244" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m51" x="46"  y="244" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m52" x="90"  y="244" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m53" x="134" y="244" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m54" x="178" y="244" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m55" x="222" y="244" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m56" x="266" y="244" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m60" x="2"   y="288" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m61" x="46"  y="288" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m62" x="90"  y="288" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m63" x="134" y="288" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m64" x="178" y="288" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m65" x="222" y="288" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+          <rect id="s2b-m66" x="266" y="288" width="38" height="38" rx="3" fill="#2563EB" opacity="0.85"/>
+        </svg>
+      </div>
+
+      <div id="s2b-label1" style="position:absolute;top:640px;left:50%;transform:translateX(-50%);text-align:center;opacity:0;">
+        <span class="display" style="font-size:38px;color:#1C1917;">Position 1 can directly attend to Position 50 — simultaneously</span>
+      </div>
+      <div id="s2b-label2" style="position:absolute;top:710px;left:50%;transform:translateX(-50%);text-align:center;opacity:0;">
+        <span style="font-size:22px;color:#78716C;">No sequential bottleneck. Training parallelizes across the full sequence.</span>
+      </div>
+    </div>
+
+    <!-- Phase C: Conclusion -->
+    <div id="s2c" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;">
+      <div style="text-align:center;max-width:1400px;">
+        <div id="s2c-l1" class="display" style="font-size:56px;color:#1C1917;margin-bottom:20px;opacity:0;">
+          Parallelizable training made massive datasets tractable.
+        </div>
+        <div id="s2c-l2" style="font-size:28px;color:#78716C;opacity:0;">
+          That is why the transformer became the foundation of the modern AI stack.
+        </div>
+        <div id="s2c-badge" style="margin-top:36px;display:inline-block;background:#000;color:#FEFB41;font-family:'Nunito',sans-serif;font-weight:800;font-size:22px;padding:14px 36px;border-radius:6px;letter-spacing:1px;opacity:0;">
+          "Attention Is All You Need" — Vaswani et al., 2017
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SCENE 3 — BUILDING BLOCK  (66–118s)
+  ═══════════════════════════════════════════ -->
+  <div id="s3" class="scene">
+
+    <div id="s3-header" style="position:absolute;top:60px;left:0;right:0;text-align:center;opacity:0;">
+      <div class="tag" style="margin-bottom:12px;">The Building Block</div>
+      <div class="display" style="font-size:64px;color:#1C1917;letter-spacing:-1px;">One Transformer Layer</div>
+    </div>
+
+    <!-- Phase A: Layer stack (left panel) -->
+    <div id="s3a" style="position:absolute;top:200px;left:120px;width:400px;opacity:0;">
+      <div style="font-size:16px;color:#A8A29E;letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;font-family:'DM Sans',sans-serif;">Stack of N identical layers</div>
+      <div id="s3a-ln" class="layer-block" style="width:320px;height:58px;font-size:22px;margin-bottom:10px;opacity:0;">Layer N</div>
+      <div style="text-align:center;font-size:22px;color:#A8A29E;margin:4px 0;">⋮</div>
+      <div id="s3a-l2" class="layer-block" style="width:320px;height:58px;font-size:22px;margin-bottom:10px;opacity:0;">Layer 2</div>
+      <div id="s3a-l1" class="layer-block" style="width:320px;height:58px;font-size:22px;margin-bottom:16px;opacity:0;">Layer 1</div>
+      <div id="s3a-input" style="width:320px;text-align:center;font-size:18px;color:#78716C;padding:10px;border-top:2px dashed #D0D0D0;opacity:0;">
+        Token Embeddings (Input)
+      </div>
+    </div>
+
+    <!-- Phase B: Single layer detail (right panel) -->
+    <div id="s3b" style="position:absolute;top:190px;left:620px;width:1100px;opacity:0;">
+      <div style="font-size:16px;color:#A8A29E;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;font-family:'DM Sans',sans-serif;">Inside one layer</div>
+
+      <!-- Input arrow -->
+      <div id="s3b-input" style="text-align:center;margin-bottom:8px;opacity:0;">
+        <span style="font-size:18px;color:#78716C;">Input representation (x)</span>
+      </div>
+      <svg id="s3b-arr-in" viewBox="0 0 40 40" style="width:40px;height:40px;display:block;margin:0 auto 8px;opacity:0;">
+        <line x1="20" y1="0" x2="20" y2="30" stroke="#202E4A" stroke-width="2.5" marker-end="url(#arrow-navy)"/>
+      </svg>
+
+      <!-- Self-Attention block -->
+      <div id="s3b-sa" style="background:#fff;border:3.5px solid #202E4A;border-radius:8px;padding:22px 36px;text-align:center;margin-bottom:0;filter:url(#sketch);opacity:0;">
+        <div class="display" style="font-size:32px;color:#202E4A;">Self-Attention</div>
+        <div style="font-size:17px;color:#78716C;margin-top:6px;">Tokens exchange information across the full sequence</div>
+      </div>
+
+      <!-- Residual + LayerNorm row 1 -->
+      <div id="s3b-res1" style="display:flex;align-items:center;gap:16px;margin:10px 0;opacity:0;">
+        <svg viewBox="0 0 40 30" style="width:40px;height:30px;flex-shrink:0;"><path d="M20,0 L20,22" stroke="#FEFB41" stroke-width="2.5" marker-end="url(#arrow-yellow)"/></svg>
+        <div style="background:rgba(254,251,65,0.18);border:2px solid #FEFB41;border-radius:6px;padding:8px 20px;font-family:'Nunito',sans-serif;font-weight:800;font-size:18px;color:#1C1917;">+ Add &amp; Norm</div>
+        <div style="font-size:16px;color:#A8A29E;font-style:italic;">Residual connection + Layer Normalization</div>
+      </div>
+
+      <!-- Feed-Forward block -->
+      <div id="s3b-ff" style="background:#fff;border:3.5px solid #000;border-radius:8px;padding:22px 36px;text-align:center;margin-bottom:0;filter:url(#sketch);opacity:0;">
+        <div class="display" style="font-size:32px;color:#1C1917;">Feed-Forward Network</div>
+        <div style="font-size:17px;color:#78716C;margin-top:6px;">Two linear transforms applied independently to each token</div>
+      </div>
+
+      <!-- Residual + LayerNorm row 2 -->
+      <div id="s3b-res2" style="display:flex;align-items:center;gap:16px;margin:10px 0;opacity:0;">
+        <svg viewBox="0 0 40 30" style="width:40px;height:30px;flex-shrink:0;"><path d="M20,0 L20,22" stroke="#FEFB41" stroke-width="2.5" marker-end="url(#arrow-yellow)"/></svg>
+        <div style="background:rgba(254,251,65,0.18);border:2px solid #FEFB41;border-radius:6px;padding:8px 20px;font-family:'Nunito',sans-serif;font-weight:800;font-size:18px;color:#1C1917;">+ Add &amp; Norm</div>
+        <div style="font-size:16px;color:#A8A29E;font-style:italic;">Residual connection + Layer Normalization</div>
+      </div>
+
+      <!-- Output -->
+      <div id="s3b-output" style="text-align:center;margin-top:4px;opacity:0;">
+        <span style="font-size:18px;color:#78716C;">Output representation (richer context)</span>
+      </div>
+    </div>
+
+    <!-- Phase C: Why it works -->
+    <div id="s3c" style="position:absolute;bottom:52px;left:620px;right:120px;opacity:0;">
+      <div style="display:flex;gap:24px;">
+        <div class="card card-yellow" style="position:static;flex:1;padding:22px 28px;">
+          <div class="display" style="font-size:22px;color:#1C1917;margin-bottom:8px;">Residual Connections</div>
+          <div style="font-size:16px;color:#78716C;">Add each layer's input directly to its output → preserves gradient flow through 100+ layers</div>
+        </div>
+        <div class="card card-black" style="position:static;flex:1;padding:22px 28px;">
+          <div class="display" style="font-size:22px;color:#1C1917;margin-bottom:8px;">Layer Normalization</div>
+          <div style="font-size:16px;color:#78716C;">Stabilizes activations at each layer → makes deep stacking reliable</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SCENE 4 — ENCODER vs DECODER  (118.5–166.5s)
+  ═══════════════════════════════════════════ -->
+  <div id="s4" class="scene">
+
+    <div id="s4-header" style="position:absolute;top:60px;left:0;right:0;text-align:center;opacity:0;">
+      <div class="tag" style="margin-bottom:12px;">Two Dominant Variants</div>
+      <div class="display" style="font-size:64px;color:#1C1917;letter-spacing:-1px;">Encoder vs. Decoder</div>
+    </div>
+
+    <!-- Divider line -->
+    <svg id="s4-divider" viewBox="0 0 4 700" style="position:absolute;top:180px;left:960px;width:4px;height:700px;opacity:0;">
+      <line x1="2" y1="0" x2="2" y2="700" stroke="#D0D0D0" stroke-width="2" stroke-dasharray="700" stroke-dashoffset="700"/>
+    </svg>
+
+    <!-- LEFT: Encoder -->
+    <div id="s4-enc" style="position:absolute;top:180px;left:80px;width:820px;opacity:0;">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+        <div class="display" style="font-size:44px;color:#202E4A;">Encoder-Only</div>
+        <span class="mono" style="font-size:18px;background:#202E4A;color:#fff;padding:4px 14px;border-radius:4px;">BERT</span>
+      </div>
+
+      <!-- Bidirectional attention grid -->
+      <div id="s4-enc-grid" style="margin-bottom:20px;opacity:0;">
+        <div style="font-size:15px;color:#A8A29E;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-family:'DM Sans',sans-serif;">Attention pattern — bidirectional</div>
+        <svg viewBox="0 0 500 160" style="width:500px;height:160px;display:block;">
+          <!-- 5 tokens -->
+          <rect x="0"   y="0" width="80" height="36" rx="5" fill="#202E4A"/>
+          <rect x="105" y="0" width="80" height="36" rx="5" fill="#202E4A"/>
+          <rect x="210" y="0" width="80" height="36" rx="5" fill="#202E4A"/>
+          <rect x="315" y="0" width="80" height="36" rx="5" fill="#202E4A"/>
+          <rect x="420" y="0" width="80" height="36" rx="5" fill="#202E4A"/>
+          <text x="40"  y="22" text-anchor="middle" fill="#fff" font-family="JetBrains Mono" font-size="12">T1</text>
+          <text x="145" y="22" text-anchor="middle" fill="#fff" font-family="JetBrains Mono" font-size="12">T2</text>
+          <text x="250" y="22" text-anchor="middle" fill="#fff" font-family="JetBrains Mono" font-size="12">T3</text>
+          <text x="355" y="22" text-anchor="middle" fill="#fff" font-family="JetBrains Mono" font-size="12">T4</text>
+          <text x="460" y="22" text-anchor="middle" fill="#fff" font-family="JetBrains Mono" font-size="12">T5</text>
+          <!-- Bidirectional lines -->
+          <path id="s4-enc-lines" d="
+            M40,36 L145,124 M40,36 L250,124 M40,36 L355,124 M40,36 L460,124
+            M145,36 L40,124 M145,36 L250,124 M145,36 L355,124 M145,36 L460,124
+            M250,36 L40,124 M250,36 L145,124 M250,36 L355,124 M250,36 L460,124
+            M355,36 L40,124 M355,36 L145,124 M355,36 L250,124 M355,36 L460,124
+            M460,36 L40,124 M460,36 L145,124 M460,36 L250,124 M460,36 L355,124"
+            stroke="#2563EB" stroke-width="1.4" fill="none" opacity="0.85"
+            stroke-dasharray="3000" stroke-dashoffset="3000"/>
+          <!-- Output tokens -->
+          <rect x="0"   y="124" width="80" height="36" rx="5" fill="#fff" stroke="#202E4A" stroke-width="2"/>
+          <rect x="105" y="124" width="80" height="36" rx="5" fill="#fff" stroke="#202E4A" stroke-width="2"/>
+          <rect x="210" y="124" width="80" height="36" rx="5" fill="#fff" stroke="#202E4A" stroke-width="2"/>
+          <rect x="315" y="124" width="80" height="36" rx="5" fill="#fff" stroke="#202E4A" stroke-width="2"/>
+          <rect x="420" y="124" width="80" height="36" rx="5" fill="#fff" stroke="#202E4A" stroke-width="2"/>
+          <text x="40"  y="146" text-anchor="middle" fill="#202E4A" font-family="JetBrains Mono" font-size="12">R1</text>
+          <text x="145" y="146" text-anchor="middle" fill="#202E4A" font-family="JetBrains Mono" font-size="12">R2</text>
+          <text x="250" y="146" text-anchor="middle" fill="#202E4A" font-family="JetBrains Mono" font-size="12">R3</text>
+          <text x="355" y="146" text-anchor="middle" fill="#202E4A" font-family="JetBrains Mono" font-size="12">R4</text>
+          <text x="460" y="146" text-anchor="middle" fill="#202E4A" font-family="JetBrains Mono" font-size="12">R5</text>
+        </svg>
+        <div style="font-size:15px;color:#78716C;margin-top:8px;">Every token attends to every other token — full context</div>
+      </div>
+
+      <div id="s4-enc-uses" style="opacity:0;">
+        <div style="font-size:16px;color:#A8A29E;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-family:'DM Sans',sans-serif;">Use cases</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;"><span style="color:#FEFB41;font-size:20px;">●</span><span style="font-size:20px;color:#1C1917;font-family:'Nunito',sans-serif;font-weight:700;">Classification &amp; labeling</span></div>
+          <div style="display:flex;align-items:center;gap:12px;"><span style="color:#FEFB41;font-size:20px;">●</span><span style="font-size:20px;color:#1C1917;font-family:'Nunito',sans-serif;font-weight:700;">Semantic search &amp; retrieval</span></div>
+          <div style="display:flex;align-items:center;gap:12px;"><span style="color:#FEFB41;font-size:20px;">●</span><span style="font-size:20px;color:#1C1917;font-family:'Nunito',sans-serif;font-weight:700;">Document understanding</span></div>
+        </div>
+      </div>
+
+      <div id="s4-enc-note" style="margin-top:20px;background:#F5F5F4;border:2px solid #D0D0D0;border-radius:6px;padding:12px 20px;opacity:0;">
+        <span style="font-size:17px;color:#78716C;">Not designed for text <strong style="color:#1C1917;">generation</strong></span>
+      </div>
+    </div>
+
+    <!-- RIGHT: Decoder -->
+    <div id="s4-dec" style="position:absolute;top:180px;left:1020px;width:820px;opacity:0;">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+        <div class="display" style="font-size:44px;color:#1C1917;">Decoder-Only</div>
+        <span class="mono" style="font-size:18px;background:#000;color:#fff;padding:4px 14px;border-radius:4px;">GPT</span>
+        <span class="mono" style="font-size:18px;background:#000;color:#FEFB41;padding:4px 14px;border-radius:4px;">Claude</span>
+      </div>
+
+      <!-- Causal attention grid -->
+      <div id="s4-dec-grid" style="margin-bottom:20px;opacity:0;">
+        <div style="font-size:15px;color:#A8A29E;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-family:'DM Sans',sans-serif;">Attention pattern — causal (masked)</div>
+        <svg viewBox="0 0 500 160" style="width:500px;height:160px;display:block;">
+          <rect x="0"   y="0" width="80" height="36" rx="5" fill="#1C1917"/>
+          <rect x="105" y="0" width="80" height="36" rx="5" fill="#1C1917"/>
+          <rect x="210" y="0" width="80" height="36" rx="5" fill="#1C1917"/>
+          <rect x="315" y="0" width="80" height="36" rx="5" fill="#1C1917"/>
+          <rect x="420" y="0" width="80" height="36" rx="5" fill="#1C1917"/>
+          <text x="40"  y="22" text-anchor="middle" fill="#fff" font-family="JetBrains Mono" font-size="12">T1</text>
+          <text x="145" y="22" text-anchor="middle" fill="#fff" font-family="JetBrains Mono" font-size="12">T2</text>
+          <text x="250" y="22" text-anchor="middle" fill="#fff" font-family="JetBrains Mono" font-size="12">T3</text>
+          <text x="355" y="22" text-anchor="middle" fill="#fff" font-family="JetBrains Mono" font-size="12">T4</text>
+          <text x="460" y="22" text-anchor="middle" fill="#fff" font-family="JetBrains Mono" font-size="12">T5</text>
+          <!-- Causal: each token only sees past tokens -->
+          <path id="s4-dec-lines" d="
+            M145,36 L40,124
+            M250,36 L40,124 M250,36 L145,124
+            M355,36 L40,124 M355,36 L145,124 M355,36 L250,124
+            M460,36 L40,124 M460,36 L145,124 M460,36 L250,124 M460,36 L355,124"
+            stroke="#DC2626" stroke-width="1.4" fill="none" opacity="0.85"
+            stroke-dasharray="3000" stroke-dashoffset="3000"/>
+          <!-- Output tokens (next-token predictions) -->
+          <rect x="105" y="124" width="80" height="36" rx="5" fill="#fff" stroke="#1C1917" stroke-width="2"/>
+          <rect x="210" y="124" width="80" height="36" rx="5" fill="#fff" stroke="#1C1917" stroke-width="2"/>
+          <rect x="315" y="124" width="80" height="36" rx="5" fill="#fff" stroke="#1C1917" stroke-width="2"/>
+          <rect x="420" y="124" width="80" height="36" rx="5" fill="#fff" stroke="#1C1917" stroke-width="2"/>
+          <text x="145" y="146" text-anchor="middle" fill="#1C1917" font-family="JetBrains Mono" font-size="12">P(T2)</text>
+          <text x="250" y="146" text-anchor="middle" fill="#1C1917" font-family="JetBrains Mono" font-size="12">P(T3)</text>
+          <text x="355" y="146" text-anchor="middle" fill="#1C1917" font-family="JetBrains Mono" font-size="12">P(T4)</text>
+          <text x="460" y="146" text-anchor="middle" fill="#1C1917" font-family="JetBrains Mono" font-size="12">P(T5)</text>
+        </svg>
+        <div style="font-size:15px;color:#78716C;margin-top:8px;">Each token only sees what came before — predicts next token</div>
+      </div>
+
+      <div id="s4-dec-uses" style="opacity:0;">
+        <div style="font-size:16px;color:#A8A29E;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-family:'DM Sans',sans-serif;">Use cases</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;"><span style="color:#FEFB41;font-size:20px;">●</span><span style="font-size:20px;color:#1C1917;font-family:'Nunito',sans-serif;font-weight:700;">Chat &amp; conversational AI</span></div>
+          <div style="display:flex;align-items:center;gap:12px;"><span style="color:#FEFB41;font-size:20px;">●</span><span style="font-size:20px;color:#1C1917;font-family:'Nunito',sans-serif;font-weight:700;">Code generation &amp; completion</span></div>
+          <div style="display:flex;align-items:center;gap:12px;"><span style="color:#FEFB41;font-size:20px;">●</span><span style="font-size:20px;color:#1C1917;font-family:'Nunito',sans-serif;font-weight:700;">Reasoning &amp; agentic tasks</span></div>
+        </div>
+      </div>
+
+      <div id="s4-dec-note" style="margin-top:20px;background:#000;border-radius:6px;padding:12px 20px;opacity:0;">
+        <span style="font-size:17px;color:#FEFB41;font-family:'Nunito',sans-serif;font-weight:700;">Autoregressive generation — one token at a time</span>
+      </div>
+    </div>
+
+    <!-- Consequence banner -->
+    <div id="s4-consequence" style="position:absolute;bottom:44px;left:80px;right:80px;background:#1C1917;border-radius:8px;padding:20px 40px;display:flex;align-items:center;gap:20px;opacity:0;">
+      <span style="font-size:18px;color:#FEFB41;font-family:'Nunito',sans-serif;font-weight:800;white-space:nowrap;">Wrong choice →</span>
+      <span style="font-size:18px;color:#fff;font-family:'DM Sans',sans-serif;">Not just a performance issue — it is an architectural mismatch. Retrieval needs encoder-style. Generation needs decoder-only.</span>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SCENE 5 — HOW GENERATION WORKS  (167–202s)
+  ═══════════════════════════════════════════ -->
+  <div id="s5" class="scene">
+
+    <div id="s5-header" style="position:absolute;top:60px;left:0;right:0;text-align:center;opacity:0;">
+      <div class="tag" style="margin-bottom:12px;">Decoder-Only at Inference</div>
+      <div class="display" style="font-size:64px;color:#1C1917;letter-spacing:-1px;">How Generation Works</div>
+    </div>
+
+    <!-- Pipeline flow -->
+    <div id="s5-pipeline" style="position:absolute;top:220px;left:80px;right:80px;opacity:0;">
+
+      <div style="display:flex;align-items:center;gap:0;">
+        <!-- Step 1: Input tokens -->
+        <div id="s5-step1" style="text-align:center;width:280px;opacity:0;">
+          <div style="background:#F5F5F4;border:2.5px solid #D0D0D0;border-radius:8px;padding:16px 20px;margin-bottom:10px;">
+            <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:20px;color:#1C1917;margin-bottom:6px;">Input Tokens</div>
+            <div style="display:flex;gap:6px;justify-content:center;">
+              <span class="tok" style="font-size:13px;padding:4px 8px;">The</span>
+              <span class="tok" style="font-size:13px;padding:4px 8px;">sky</span>
+              <span class="tok" style="font-size:13px;padding:4px 8px;">is</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arrow 1 -->
+        <svg id="s5-arr1" viewBox="0 0 80 30" style="width:80px;height:30px;flex-shrink:0;opacity:0;">
+          <line x1="4" y1="15" x2="68" y2="15" stroke="#202E4A" stroke-width="2.5" marker-end="url(#arrow-navy)"
+                stroke-dasharray="64" stroke-dashoffset="64"/>
+        </svg>
+
+        <!-- Step 2: Transformer layers -->
+        <div id="s5-step2" style="text-align:center;width:360px;opacity:0;">
+          <div style="background:#202E4A;border-radius:8px;padding:16px 20px;margin-bottom:10px;">
+            <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:20px;color:#fff;margin-bottom:4px;">Transformer Layers</div>
+            <div style="font-size:14px;color:rgba(255,255,255,0.6);">Self-attention + Feed-forward × N</div>
+          </div>
+        </div>
+
+        <!-- Arrow 2 -->
+        <svg id="s5-arr2" viewBox="0 0 80 30" style="width:80px;height:30px;flex-shrink:0;opacity:0;">
+          <line x1="4" y1="15" x2="68" y2="15" stroke="#202E4A" stroke-width="2.5" marker-end="url(#arrow-navy)"
+                stroke-dasharray="64" stroke-dashoffset="64"/>
+        </svg>
+
+        <!-- Step 3: Vocab distribution -->
+        <div id="s5-step3" style="text-align:center;flex:1;opacity:0;">
+          <div style="background:#fff;border:3.5px solid #FEFB41;border-radius:8px;padding:16px 20px;margin-bottom:10px;">
+            <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:20px;color:#1C1917;margin-bottom:10px;">Vocabulary Distribution</div>
+            <!-- Probability bars -->
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="mono" style="font-size:14px;width:70px;text-align:right;color:#1C1917;">"blue"</span>
+                <div style="flex:1;height:18px;background:#F5F5F4;border-radius:3px;overflow:hidden;">
+                  <div id="s5-bar1" style="height:100%;width:0%;background:#202E4A;border-radius:2px;"></div>
+                </div>
+                <span style="font-size:13px;color:#78716C;width:42px;">0.42</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="mono" style="font-size:14px;width:70px;text-align:right;color:#1C1917;">"clear"</span>
+                <div style="flex:1;height:18px;background:#F5F5F4;border-radius:3px;overflow:hidden;">
+                  <div id="s5-bar2" style="height:100%;width:0%;background:#202E4A;border-radius:2px;"></div>
+                </div>
+                <span style="font-size:13px;color:#78716C;width:42px;">0.28</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span class="mono" style="font-size:14px;width:70px;text-align:right;color:#1C1917;">"bright"</span>
+                <div style="flex:1;height:18px;background:#F5F5F4;border-radius:3px;overflow:hidden;">
+                  <div id="s5-bar3" style="height:100%;width:0%;background:#D0D0D0;border-radius:2px;"></div>
+                </div>
+                <span style="font-size:13px;color:#78716C;width:42px;">0.14</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arrow 3 + Sample -->
+        <div id="s5-sample" style="display:flex;flex-direction:column;align-items:center;gap:8px;width:140px;flex-shrink:0;opacity:0;">
+          <svg viewBox="0 0 30 80" style="width:30px;height:80px;">
+            <line x1="15" y1="4" x2="15" y2="68" stroke="#FEFB41" stroke-width="2.5" marker-end="url(#arrow-yellow)"/>
+          </svg>
+          <div class="tok tok-active" style="font-size:18px;padding:10px 18px;">"blue"</div>
+          <div style="font-size:13px;color:#78716C;text-align:center;">Sample &amp;<br>append</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Loop arrow -->
+    <div id="s5-loop" style="position:absolute;top:500px;left:80px;right:80px;opacity:0;">
+      <svg viewBox="0 0 1760 80" style="width:100%;height:80px;display:block;">
+        <path id="s5-loop-path" d="M1700,10 C1760,10 1760,70 1700,70 L80,70 C20,70 20,10 80,10"
+              stroke="#202E4A" stroke-width="2.5" fill="none" marker-end="url(#arrow-navy)"
+              stroke-dasharray="4000" stroke-dashoffset="4000"/>
+        <text x="880" y="55" text-anchor="middle" fill="#202E4A" font-family="DM Sans" font-size="18">Append token → run again (autoregressive)</text>
+      </svg>
+    </div>
+
+    <!-- Cost callout -->
+    <div id="s5-cost" style="position:absolute;bottom:60px;left:80px;right:80px;display:flex;gap:24px;opacity:0;">
+      <div class="card card-navy" style="position:static;flex:1;padding:20px 28px;">
+        <div class="display" style="font-size:22px;color:#202E4A;margin-bottom:8px;">~Hundreds of Forward Passes</div>
+        <div style="font-size:16px;color:#78716C;">Each new token = one full forward pass through every layer</div>
+      </div>
+      <div class="card card-black" style="position:static;flex:1;padding:20px 28px;">
+        <div class="display" style="font-size:22px;color:#1C1917;margin-bottom:8px;">Production Impact</div>
+        <div style="font-size:16px;color:#78716C;">Direct implications for latency budgets, cost modeling, and throughput</div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SCENE 6 — WHY IT SCALES  (202.5–245.5s)
+  ═══════════════════════════════════════════ -->
+  <div id="s6" class="scene">
+
+    <div id="s6-header" style="position:absolute;top:60px;left:0;right:0;text-align:center;opacity:0;">
+      <div class="tag" style="margin-bottom:12px;">Scaling Laws</div>
+      <div class="display" style="font-size:64px;color:#1C1917;letter-spacing:-1px;">Why This Architecture Scales</div>
+    </div>
+
+    <!-- Phase A: Scaling chart -->
+    <div id="s6a" style="position:absolute;top:190px;left:120px;width:820px;opacity:0;">
+      <div style="font-size:16px;color:#A8A29E;letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;font-family:'DM Sans',sans-serif;">Capability vs. Parameters</div>
+      <svg id="s6-chart" viewBox="0 0 700 380" style="width:700px;height:380px;display:block;">
+        <!-- Axes -->
+        <line x1="60" y1="320" x2="660" y2="320" stroke="#D0D0D0" stroke-width="2"/>
+        <line x1="60" y1="40"  x2="60"  y2="320" stroke="#D0D0D0" stroke-width="2"/>
+        <!-- Axis labels -->
+        <text x="360" y="355" text-anchor="middle" fill="#A8A29E" font-family="DM Sans" font-size="16">Parameters →</text>
+        <text x="20" y="180" text-anchor="middle" fill="#A8A29E" font-family="DM Sans" font-size="16" transform="rotate(-90,20,180)">Capability →</text>
+        <!-- Earlier arch — plateaus -->
+        <path id="s6-curve-old" d="M60,310 C160,240 260,160 360,120 C460,95 560,85 660,82"
+              stroke="#D0D0D0" stroke-width="3" fill="none" stroke-dasharray="800" stroke-dashoffset="800" stroke-dasharray="700"/>
+        <text id="s6-label-old" x="560" y="76" fill="#A8A29E" font-family="DM Sans" font-size="15" opacity="0">Earlier architectures</text>
+        <!-- Transformer — smooth -->
+        <path id="s6-curve-new" d="M60,310 C160,260 280,190 400,130 C520,70 600,48 660,40"
+              stroke="#202E4A" stroke-width="3.5" fill="none" stroke-dasharray="700" stroke-dashoffset="700"/>
+        <text id="s6-label-new" x="580" y="38" fill="#202E4A" font-family="Nunito" font-weight="800" font-size="15" opacity="0">Transformer</text>
+      </svg>
+    </div>
+
+    <!-- Phase B: Scaling laws formula -->
+    <div id="s6b" style="position:absolute;top:190px;left:980px;width:820px;opacity:0;">
+      <div style="font-size:16px;color:#A8A29E;letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;font-family:'DM Sans',sans-serif;">Published Scaling Laws</div>
+      <div class="card card-navy" style="position:static;padding:28px 36px;margin-bottom:20px;">
+        <div class="mono" style="font-size:24px;color:#202E4A;margin-bottom:12px;letter-spacing:-0.5px;">
+          Performance ∝ N<sup style="font-size:16px;">α</sup> · D<sup style="font-size:16px;">β</sup>
+        </div>
+        <div style="font-size:16px;color:#78716C;line-height:1.6;">
+          <strong style="color:#1C1917;">N</strong> = Model parameters &nbsp;·&nbsp;
+          <strong style="color:#1C1917;">D</strong> = Training data tokens
+        </div>
+        <div style="font-size:15px;color:#A8A29E;margin-top:10px;">
+          More compute + data, applied in proportion → reliably improves capability
+        </div>
+      </div>
+
+      <div id="s6b-years" style="opacity:0;">
+        <div style="background:#000;border-radius:8px;padding:20px 28px;display:flex;align-items:center;gap:20px;">
+          <div class="display" style="font-size:52px;color:#FEFB41;line-height:1;flex-shrink:0;">8</div>
+          <div>
+            <div class="display" style="font-size:24px;color:#fff;margin-bottom:4px;">Years of AI Progress</div>
+            <div style="font-size:15px;color:rgba(255,255,255,0.6);">Not constant reinvention — disciplined scaling of a stable design</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase C: Evaluation framework -->
+    <div id="s6c" style="position:absolute;bottom:52px;left:120px;right:120px;opacity:0;">
+      <div class="card card-yellow" style="position:static;padding:22px 36px;">
+        <div class="display" style="font-size:22px;color:#1C1917;margin-bottom:10px;">When evaluating model releases — ask:</div>
+        <div style="display:flex;gap:60px;">
+          <div>
+            <div style="font-size:18px;color:#202E4A;font-family:'Nunito',sans-serif;font-weight:800;margin-bottom:4px;">Architectural innovation?</div>
+            <div style="font-size:15px;color:#78716C;">New mechanism, new training approach</div>
+          </div>
+          <div>
+            <div style="font-size:18px;color:#1C1917;font-family:'Nunito',sans-serif;font-weight:800;margin-bottom:4px;">Or just more compute?</div>
+            <div style="font-size:15px;color:#78716C;">Larger model, more data, same architecture</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SCENE 7 — KV CACHE  (246–284s)
+  ═══════════════════════════════════════════ -->
+  <div id="s7" class="scene">
+
+    <div id="s7-header" style="position:absolute;top:60px;left:0;right:0;text-align:center;opacity:0;">
+      <div class="tag" style="margin-bottom:12px;">Infrastructure Reality</div>
+      <div class="display" style="font-size:64px;color:#1C1917;letter-spacing:-1px;">The KV Cache</div>
+    </div>
+
+    <!-- Phase A: Growing cache diagram -->
+    <div id="s7a" style="position:absolute;top:200px;left:120px;width:760px;opacity:0;">
+      <div style="font-size:16px;color:#A8A29E;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;font-family:'DM Sans',sans-serif;">Cache grows with context length</div>
+
+      <!-- Context bars at different lengths -->
+      <div style="display:flex;flex-direction:column;gap:18px;">
+        <div id="s7a-r1" style="opacity:0;">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+            <span class="mono" style="font-size:14px;color:#78716C;width:100px;">1k tokens</span>
+            <div style="flex:1;height:28px;background:#F5F5F4;border-radius:4px;overflow:hidden;border:2px solid #E7E5E4;">
+              <div id="s7a-bar1" style="height:100%;width:0%;background:#202E4A;border-radius:2px;"></div>
+            </div>
+            <span style="font-size:13px;color:#78716C;width:60px;">Small</span>
+          </div>
+        </div>
+        <div id="s7a-r2" style="opacity:0;">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+            <span class="mono" style="font-size:14px;color:#78716C;width:100px;">8k tokens</span>
+            <div style="flex:1;height:28px;background:#F5F5F4;border-radius:4px;overflow:hidden;border:2px solid #E7E5E4;">
+              <div id="s7a-bar2" style="height:100%;width:0%;background:#202E4A;border-radius:2px;"></div>
+            </div>
+            <span style="font-size:13px;color:#78716C;width:60px;">Growing</span>
+          </div>
+        </div>
+        <div id="s7a-r3" style="opacity:0;">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+            <span class="mono" style="font-size:14px;color:#78716C;width:100px;">32k tokens</span>
+            <div style="flex:1;height:28px;background:#F5F5F4;border-radius:4px;overflow:hidden;border:2px solid #E7E5E4;">
+              <div id="s7a-bar3" style="height:100%;width:0%;background:#FEFB41;border-radius:2px;"></div>
+            </div>
+            <span style="font-size:13px;color:#1C1917;width:60px;font-weight:700;">Large</span>
+          </div>
+        </div>
+        <div id="s7a-r4" style="opacity:0;">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+            <span class="mono" style="font-size:14px;color:#78716C;width:100px;">128k tokens</span>
+            <div style="flex:1;height:28px;background:#F5F5F4;border-radius:4px;overflow:hidden;border:2px solid #E7E5E4;">
+              <div id="s7a-bar4" style="height:100%;width:0%;background:#1C1917;border-radius:2px;"></div>
+            </div>
+            <span style="font-size:13px;color:#1C1917;width:80px;font-weight:800;">Dominant</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="s7a-note" style="margin-top:20px;font-size:18px;color:#78716C;opacity:0;">
+        KV cache stores <strong style="color:#1C1917;">intermediate attention values</strong> — avoids recomputing every step
+      </div>
+    </div>
+
+    <!-- Phase B: Memory breakdown -->
+    <div id="s7b" style="position:absolute;top:200px;left:980px;width:820px;opacity:0;">
+      <div style="font-size:16px;color:#A8A29E;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;font-family:'DM Sans',sans-serif;">Dominant Inference Memory Costs</div>
+
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div id="s7b-r1" style="display:flex;align-items:center;gap:20px;opacity:0;">
+          <div style="width:220px;font-family:'Nunito',sans-serif;font-weight:800;font-size:22px;color:#1C1917;">Model Weights</div>
+          <div style="flex:1;height:40px;background:#F5F5F4;border-radius:4px;overflow:hidden;border:2px solid #E7E5E4;">
+            <div id="s7b-mw" style="height:100%;width:0%;background:#202E4A;border-radius:2px;"></div>
+          </div>
+          <span style="font-size:14px;color:#78716C;width:60px;">Fixed</span>
+        </div>
+        <div id="s7b-r2" style="display:flex;align-items:center;gap:20px;opacity:0;">
+          <div style="width:220px;font-family:'Nunito',sans-serif;font-weight:800;font-size:22px;color:#1C1917;">KV Cache</div>
+          <div style="flex:1;height:40px;background:#F5F5F4;border-radius:4px;overflow:hidden;border:2px solid #E7E5E4;">
+            <div id="s7b-kv" style="height:100%;width:0%;background:#FEFB41;border-radius:2px;"></div>
+          </div>
+          <span style="font-size:14px;color:#1C1917;width:80px;font-weight:700;">Grows ↑</span>
+        </div>
+      </div>
+
+      <div id="s7b-label" style="margin-top:24px;opacity:0;">
+        <div style="font-size:18px;color:#78716C;">One of the <strong style="color:#1C1917;">dominant memory costs</strong> of inference, alongside model weights</div>
+      </div>
+    </div>
+
+    <!-- Phase C: Throughput consequence -->
+    <div id="s7c" style="position:absolute;bottom:52px;left:120px;right:120px;opacity:0;">
+      <div style="background:#1C1917;border-radius:8px;padding:24px 40px;display:flex;align-items:center;justify-content:space-between;gap:40px;">
+        <div>
+          <div class="display" style="font-size:28px;color:#FEFB41;margin-bottom:8px;">Longer context → fewer concurrent users</div>
+          <div style="font-size:17px;color:rgba(255,255,255,0.7);">Longer context is not just more expensive to compute — it reduces serving throughput</div>
+        </div>
+        <div style="text-align:center;flex-shrink:0;">
+          <div class="display" style="font-size:22px;color:#fff;margin-bottom:4px;">Binding Constraint</div>
+          <div style="font-size:15px;color:rgba(255,255,255,0.5);">For feature scoping and infrastructure cost</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SCENE 8 — SUMMARY  (284.5–312.5s)
+  ═══════════════════════════════════════════ -->
+  <div id="s8" class="scene">
+
+    <div id="s8-header" style="position:absolute;top:60px;left:200px;opacity:0;">
+      <div class="tag" style="margin-bottom:8px;">Key Takeaways</div>
+      <div class="display" style="font-size:80px;color:#1C1917;letter-spacing:-2px;">Summary</div>
+      <svg viewBox="0 0 480 18" style="width:480px;height:18px;display:block;margin-top:8px;">
+        <path id="s8-uline" d="M4,12 L476,8" stroke="#FEFB41" stroke-width="4" fill="none"
+              stroke-linecap="round" stroke-dasharray="480" stroke-dashoffset="480"/>
+      </svg>
+    </div>
+
+    <div style="position:absolute;top:240px;left:200px;right:200px;display:flex;flex-direction:column;gap:24px;">
+      <div id="s8-b1" style="display:flex;align-items:flex-start;gap:20px;opacity:0;">
+        <span class="mono" style="font-size:14px;color:#FEFB41;width:36px;flex-shrink:0;padding-top:4px;">01</span>
+        <div>
+          <span class="display" style="font-size:26px;color:#1C1917;">Replaced sequential processing</span>
+          <span style="font-size:22px;color:#78716C;"> — parallelizable attention made large-scale training feasible</span>
+        </div>
+      </div>
+      <div id="s8-b2" style="display:flex;align-items:flex-start;gap:20px;opacity:0;">
+        <span class="mono" style="font-size:14px;color:#FEFB41;width:36px;flex-shrink:0;padding-top:4px;">02</span>
+        <div>
+          <span class="display" style="font-size:26px;color:#1C1917;">Layers = Self-Attention + Feed-Forward</span>
+          <span style="font-size:22px;color:#78716C;"> stabilized by residuals and layer normalization</span>
+        </div>
+      </div>
+      <div id="s8-b3" style="display:flex;align-items:flex-start;gap:20px;opacity:0;">
+        <span class="mono" style="font-size:14px;color:#FEFB41;width:36px;flex-shrink:0;padding-top:4px;">03</span>
+        <div>
+          <span class="display" style="font-size:26px;color:#202E4A;">Encoder-only → comprehension</span>
+          <span style="font-size:22px;color:#78716C;"> · </span>
+          <span class="display" style="font-size:26px;color:#1C1917;">Decoder-only → generation</span>
+        </div>
+      </div>
+      <div id="s8-b4" style="display:flex;align-items:flex-start;gap:20px;opacity:0;">
+        <span class="mono" style="font-size:14px;color:#FEFB41;width:36px;flex-shrink:0;padding-top:4px;">04</span>
+        <div>
+          <span class="display" style="font-size:26px;color:#1C1917;">Scales predictably</span>
+          <span style="font-size:22px;color:#78716C;"> — explains eight years of AI progress since 2017</span>
+        </div>
+      </div>
+      <div id="s8-b5" style="display:flex;align-items:flex-start;gap:20px;opacity:0;">
+        <span class="mono" style="font-size:14px;color:#FEFB41;width:36px;flex-shrink:0;padding-top:4px;">05</span>
+        <div>
+          <span class="display" style="font-size:26px;color:#1C1917;">KV cache</span>
+          <span style="font-size:22px;color:#78716C;"> = dominant inference memory cost — real consequences for serving economics</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- Gen Academy Logo Watermark — persists across all scenes -->
+  <div style="position:absolute;bottom:28px;right:28px;z-index:100;border-radius:6px;padding:8px 14px;background:#000000;border:1px solid #333333;display:flex;flex-direction:row;gap:10px;align-items:center;">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <path d="M14 4 C8 4 4 8.5 4 13.5 C4 17 6 19.5 8.5 21 L8.5 23 L19.5 23 L19.5 21 C22 19.5 24 17 24 13.5 C24 8.5 20 4 14 4 Z" stroke="white" stroke-width="1.5" fill="none"/>
+      <line x1="9.5" y1="24.5" x2="18.5" y2="24.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="10.5" y1="26" x2="17.5" y2="26" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M10 13 C10 11 12 10 14 11 C16 10 18 11 18 13 C18 15 16 16 14 15.5 C12 16 10 15 10 13Z" stroke="#FEFB41" stroke-width="1" fill="none"/>
+      <path d="M14 11 L14 15.5" stroke="#FEFB41" stroke-width="0.8"/>
+      <path d="M11.5 12 C11.5 12 12.5 13.5 14 13" stroke="#FEFB41" stroke-width="0.8" fill="none"/>
+      <path d="M16.5 12 C16.5 12 15.5 13.5 14 13" stroke="#FEFB41" stroke-width="0.8" fill="none"/>
+    </svg>
+    <div style="width:1px;height:28px;background:#FEFB41;"></div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <div style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.15em;color:#FFFFFF;text-transform:uppercase;line-height:1;">Gen Academy</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:8px;color:#FEFB41;letter-spacing:0.05em;line-height:1;">AI Skills That Advance Careers.</div>
+    </div>
+  </div>
+
+</div><!-- /#root -->
+
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+<script>
+  const tl = gsap.timeline({ paused: true });
+  const ft = (el, f, t, pos) => tl.fromTo(el, f, t, pos);
+  const draw = (pathId, len, dur, pos, ease) =>
+    tl.to(pathId, { strokeDashoffset: 0, duration: dur, ease: ease || 'power2.inOut' }, pos);
+
+  // SCENE 1 — Introduction
+  tl.set('#s1', { opacity: 1 }, 0.0);
+  ft('#s1-tag',    { opacity:0 },       { opacity:1, duration:0.4 }, 0.2);
+  ft('#s1-t1',     { opacity:0, y:24 }, { opacity:1, y:0, duration:0.5, ease:'power2.out' }, 0.6);
+  ft('#s1-t2',     { opacity:0, y:24 }, { opacity:1, y:0, duration:0.5, ease:'power2.out' }, 1.1);
+  draw('#s1-uline', 760, 0.8, 1.5);
+  ft('#s1-models', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5, ease:'power2.out' }, 6.59);
+  ft('#s1-sub',    { opacity:0 },       { opacity:1, duration:0.5 }, 7.09);
+  tl.to('#s1', { opacity:0, duration:0.5 }, 18.48);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 18.88);
+  tl.to('#flash', { opacity:0, duration:0.2  }, 18.95);
+
+  // SCENE 2 — What It Replaced
+  tl.set('#s2',  { opacity: 1 }, 19.68);
+  tl.set('#s2a', { opacity: 1 }, 19.68);
+  ft('#s2a',        { opacity:0 },       { opacity:1, duration:0.4 }, 19.68);
+  ft('#s2a-tokens', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 20.08);
+  tl.to('#s2a-arrows', { opacity:1, duration:0.3 }, 20.68);
+  draw('#s2a-a1', 120, 0.4, 21.18);
+  draw('#s2a-a2', 120, 0.4, 21.68);
+  draw('#s2a-a3', 120, 0.4, 22.18);
+  draw('#s2a-a4', 120, 0.4, 22.68);
+  draw('#s2a-a5', 120, 0.4, 23.18);
+  draw('#s2a-a6', 120, 0.4, 23.68);
+  ft('#s2a-p1', { opacity:0, y:12 }, { opacity:1, y:0, duration:0.5 }, 28.64);
+  ft('#s2a-p2', { opacity:0 },       { opacity:1, duration:0.4 }, 29.84);
+  tl.to('#s2a', { opacity:0, duration:0.4 }, 36.45);
+  tl.set('#s2b', { opacity: 1 }, 36.85);
+  ft('#s2b',        { opacity:0 },       { opacity:1, duration:0.4 }, 36.85);
+  ft('#s2b-tokens', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 37.25);
+  ft('#s2b-matrix', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.6 }, 37.85);
+  tl.fromTo('[id^="s2b-m"]', { opacity:0 }, { opacity:0.85, duration:0.8, stagger:0.02 }, 38.35);
+  ft('#s2b-label1', { opacity:0, y:12 }, { opacity:1, y:0, duration:0.5 }, 48.9);
+  ft('#s2b-label2', { opacity:0 },       { opacity:1, duration:0.4 }, 50.1);
+  tl.to('#s2b', { opacity:0, duration:0.4 }, 56.72);
+  tl.set('#s2c', { opacity: 1 }, 57.12);
+  ft('#s2c',       { opacity:0 },       { opacity:1, duration:0.4 }, 57.12);
+  ft('#s2c-l1',    { opacity:0, y:20 }, { opacity:1, y:0, duration:0.5 }, 57.62);
+  ft('#s2c-l2',    { opacity:0 },       { opacity:1, duration:0.4 }, 59.62);
+  ft('#s2c-badge', { opacity:0, y:12 }, { opacity:1, y:0, duration:0.5 }, 61.62);
+  tl.to('#s2', { opacity:0, duration:0.5 }, 70.53);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 70.93);
+  tl.to('#flash', { opacity:0, duration:0.2  }, 71.0);
+
+  // SCENE 3 — Building Block
+  tl.set('#s3', { opacity: 1 }, 71.73);
+  ft('#s3-header', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 71.94);
+  ft('#s3a',       { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5 }, 72.44);
+  ft('#s3a-input', { opacity:0 },        { opacity:1, duration:0.4 }, 72.73);
+  ft('#s3a-l1',    { opacity:0, y:12 },  { opacity:1, y:0, duration:0.4 }, 73.23);
+  ft('#s3a-l2',    { opacity:0, y:12 },  { opacity:1, y:0, duration:0.4 }, 73.73);
+  ft('#s3a-ln',    { opacity:0, y:12 },  { opacity:1, y:0, duration:0.4 }, 74.23);
+  ft('#s3b',        { opacity:0, x:20 }, { opacity:1, x:0, duration:0.5 }, 80.4);
+  ft('#s3b-input',  { opacity:0 },       { opacity:1, duration:0.4 }, 80.7);
+  ft('#s3b-arr-in', { opacity:0 },       { opacity:1, duration:0.3 }, 81.0);
+  ft('#s3b-sa',     { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.2)' }, 83.11);
+  ft('#s3b-res1',   { opacity:0 },       { opacity:1, duration:0.4 }, 86.61);
+  ft('#s3b-ff',     { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.2)' }, 97.27);
+  ft('#s3b-res2',   { opacity:0 },       { opacity:1, duration:0.4 }, 103.27);
+  ft('#s3b-output', { opacity:0 },       { opacity:1, duration:0.4 }, 103.77);
+  ft('#s3c', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.6 }, 116.49);
+  tl.to('#s3', { opacity:0, duration:0.5 }, 136.48);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 136.88);
+  tl.to('#flash', { opacity:0, duration:0.2  }, 136.95);
+
+  // SCENE 4 — Encoder vs Decoder
+  tl.set('#s4', { opacity: 1 }, 137.68);
+  ft('#s4-header', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 137.88);
+  tl.to('#s4-divider', { opacity:1, duration:0.3 }, 139.18);
+  draw('#s4-divider line', 700, 0.6, 139.18);
+  ft('#s4-enc',      { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5 }, 144.15);
+  ft('#s4-enc-grid', { opacity:0 },        { opacity:1, duration:0.4 }, 144.45);
+  draw('#s4-enc-lines', 3000, 1.2, 144.75);
+  ft('#s4-enc-uses', { opacity:0, y:12 }, { opacity:1, y:0, duration:0.5 }, 151.61);
+  ft('#s4-enc-note', { opacity:0 },       { opacity:1, duration:0.4 }, 157.22);
+  ft('#s4-dec',      { opacity:0, x:20 }, { opacity:1, x:0, duration:0.5 }, 160.06);
+  ft('#s4-dec-grid', { opacity:0 },       { opacity:1, duration:0.4 }, 160.36);
+  draw('#s4-dec-lines', 3000, 1.2, 160.66);
+  ft('#s4-dec-uses', { opacity:0, y:12 }, { opacity:1, y:0, duration:0.5 }, 173.22);
+  ft('#s4-dec-note', { opacity:0 },       { opacity:1, duration:0.4 }, 173.82);
+  ft('#s4-consequence', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 178.28);
+  tl.to('#s4', { opacity:0, duration:0.5 }, 196.71);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 197.11);
+  tl.to('#flash', { opacity:0, duration:0.2  }, 197.18);
+
+  // SCENE 5 — How Generation Works
+  tl.set('#s5', { opacity: 1 }, 197.91);
+  ft('#s5-header',   { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 198.11);
+  ft('#s5-pipeline', { opacity:0 },       { opacity:1, duration:0.4 }, 198.71);
+  ft('#s5-step1', { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5 }, 199.41);
+  ft('#s5-arr1',  { opacity:0 },        { opacity:1, duration:0.3 }, 200.11);
+  draw('#s5-arr1 line', 64, 0.3, 200.11);
+  ft('#s5-step2', { opacity:0, y:16 },  { opacity:1, y:0, duration:0.5 }, 201.11);
+  ft('#s5-arr2',  { opacity:0 },        { opacity:1, duration:0.3 }, 201.81);
+  draw('#s5-arr2 line', 64, 0.3, 201.81);
+  ft('#s5-step3', { opacity:0, y:16 },  { opacity:1, y:0, duration:0.5 }, 202.71);
+  tl.to('#s5-bar1', { width:'42%', duration:0.6, ease:'power2.out' }, 204.91);
+  tl.to('#s5-bar2', { width:'28%', duration:0.6, ease:'power2.out' }, 205.41);
+  tl.to('#s5-bar3', { width:'14%', duration:0.6, ease:'power2.out' }, 205.91);
+  ft('#s5-sample', { opacity:0, x:16 }, { opacity:1, x:0, duration:0.5 }, 210.91);
+  ft('#s5-loop',   { opacity:0 },       { opacity:1, duration:0.5 }, 211.41);
+  draw('#s5-loop-path', 4000, 1.2, 211.91);
+  ft('#s5-cost', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.5 }, 216.03);
+  tl.to('#s5', { opacity:0, duration:0.5 }, 236.08);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 236.48);
+  tl.to('#flash', { opacity:0, duration:0.2  }, 236.55);
+
+  // SCENE 6 — Why It Scales
+  tl.set('#s6', { opacity: 1 }, 237.28);
+  ft('#s6-header', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 237.48);
+  ft('#s6a', { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5 }, 239.28);
+  draw('#s6-curve-old', 700, 1.2, 239.78);
+  ft('#s6-label-old', { opacity:0 }, { opacity:1, duration:0.4 }, 241.28);
+  draw('#s6-curve-new', 700, 1.4, 242.28);
+  ft('#s6-label-new', { opacity:0 }, { opacity:1, duration:0.4 }, 243.78);
+  ft('#s6b',       { opacity:0, x:20 }, { opacity:1, x:0, duration:0.5 }, 250.83);
+  ft('#s6b-years', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 263.93);
+  ft('#s6c',       { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 273.42);
+  tl.to('#s6', { opacity:0, duration:0.5 }, 290.38);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 290.78);
+  tl.to('#flash', { opacity:0, duration:0.2  }, 290.85);
+
+  // SCENE 7 — KV Cache
+  tl.set('#s7', { opacity: 1 }, 291.58);
+  ft('#s7-header', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 291.78);
+  ft('#s7a', { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5 }, 296.08);
+  ft('#s7a-r1', { opacity:0 }, { opacity:1, duration:0.3 }, 296.58);
+  tl.to('#s7a-bar1', { width:'14%', duration:0.5, ease:'power2.out' }, 296.78);
+  ft('#s7a-r2', { opacity:0 }, { opacity:1, duration:0.3 }, 299.08);
+  tl.to('#s7a-bar2', { width:'30%', duration:0.5, ease:'power2.out' }, 299.28);
+  ft('#s7a-r3', { opacity:0 }, { opacity:1, duration:0.3 }, 301.08);
+  tl.to('#s7a-bar3', { width:'60%', duration:0.5, ease:'power2.out' }, 301.28);
+  ft('#s7a-r4', { opacity:0 }, { opacity:1, duration:0.3 }, 303.58);
+  tl.to('#s7a-bar4', { width:'92%', duration:0.6, ease:'power2.out' }, 303.78);
+  ft('#s7a-note', { opacity:0 }, { opacity:1, duration:0.4 }, 305.58);
+  ft('#s7b', { opacity:0, x:20 }, { opacity:1, x:0, duration:0.5 }, 311.38);
+  ft('#s7b-r1', { opacity:0 }, { opacity:1, duration:0.3 }, 312.38);
+  tl.to('#s7b-mw', { width:'52%', duration:0.6, ease:'power2.out' }, 312.58);
+  ft('#s7b-r2', { opacity:0 }, { opacity:1, duration:0.3 }, 315.38);
+  tl.to('#s7b-kv', { width:'72%', duration:0.8, ease:'power2.out' }, 315.58);
+  ft('#s7b-label', { opacity:0 }, { opacity:1, duration:0.4 }, 316.88);
+  ft('#s7c', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 322.68);
+  tl.to('#s7', { opacity:0, duration:0.5 }, 335.12);
+  tl.to('#flash', { opacity:1, duration:0.07 }, 335.52);
+  tl.to('#flash', { opacity:0, duration:0.2  }, 335.59);
+
+  // SCENE 8 — Summary
+  tl.set('#s8', { opacity: 1 }, 336.32);
+  ft('#s8-header', { opacity:0, y:16 }, { opacity:1, y:0, duration:0.5 }, 336.52);
+  draw('#s8-uline', 480, 0.7, 336.82);
+  ft('#s8-b1', { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5 }, 337.12);
+  ft('#s8-b2', { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5 }, 344.09);
+  ft('#s8-b3', { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5 }, 351.6);
+  ft('#s8-b4', { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5 }, 357.85);
+  ft('#s8-b5', { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.5 }, 364.48);
+
+  // End marker
+  tl.set({}, {}, 375.34);
+
+  window.__timelines = window.__timelines || {};
+  window.__timelines['transformer-architecture'] = tl;
+</script>
+</body>
+</html>

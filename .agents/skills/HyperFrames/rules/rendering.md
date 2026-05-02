@@ -5,6 +5,19 @@ metadata:
   tags: render, mp4, webm, mov, quality, fps, gpu, docker, cli
 ---
 
+## ⚠ When to render
+
+**Only run `npx hyperframes render` when the user explicitly asks to render or create a video.**
+
+After building or modifying a composition, open `preview.html` instead:
+```bash
+open preview.html
+```
+
+See [rules/preview.md](preview.md) for the standard preview template.
+
+---
+
 ## Basic render
 
 ```bash

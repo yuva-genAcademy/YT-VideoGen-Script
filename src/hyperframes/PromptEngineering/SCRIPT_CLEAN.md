@@ -1,8 +1,8 @@
-# Prompt Engineering — Narration Script (v2)
+# Prompt Engineering — Narration Script (v3)
 
-**Total Duration:** 4:18 (258.75s)
-**Speaking pace:** 130 wpm (calm, clear, consistent throughout)
-**Word count per section:** calibrated to scene time windows in the GSAP timeline
+**Total Duration:** ~4:01 (241s)
+**Speaking pace:** ~130 wpm (calm, clear, educational)
+**Style:** Calm, clear, educational — knowledgeable friend explaining, not a lecturer
 
 Formula: `words ÷ 130 × 60 = seconds`
 
@@ -10,45 +10,45 @@ Formula: `words ÷ 130 × 60 = seconds`
 
 ## Scene timing map
 
-| Scene | Start | End | Window | Target words |
-|-------|-------|-----|--------|-------------|
-| 1 — Hook | 0s | 25.25s | 25.25s | 55 |
-| 2 — Base Prompt | 25.75s | 34s | 8.25s | 18 |
-| 3 — Zero-Shot | 34.5s | 53.25s | 18.75s | 41 |
-| 4 — Role Prompting | 53.75s | 72.12s | 18.37s | 40 |
-| 5 — Few-Shot | 72.62s | 91s | 18.38s | 40 |
-| 6 — Chain of Thought | 91.5s | 117.75s | 26.25s | 57 |
-| 7 — Self-Consistency | 118.25s | 136.25s | 18s | 39 |
-| 8 — Tree of Thoughts | 136.75s | 154.85s | 18.1s | 39 |
-| 9 — ReAct | 155.35s | 173.35s | 18s | 39 |
-| 10 — Prompt Chaining | 173.85s | 192.25s | 18.4s | 40 |
-| 11 — Comparison | 192.75s | 237.25s | 44.5s | 96 |
-| 12 — Outro | 237.75s | 258.75s | 21s | 46 |
+| Scene | Start | End | Window | Words |
+|-------|-------|-----|--------|-------|
+| 1 — Introduction | 0s | 20s | ~20s | 44 |
+| 2 — Base Prompt | 19.5s | 31.5s | ~12s | 27 |
+| 3 — Zero-Shot | 31s | 49s | ~18s | 40 |
+| 4 — Role Prompting | 48.5s | 65.5s | ~17s | 36 |
+| 5 — Few-Shot | 65s | 82s | ~17s | 36 |
+| 6 — Chain of Thought | 81.5s | 101.5s | ~20s | 44 |
+| 7 — Self-Consistency | 101s | 121s | ~20s | 43 |
+| 8 — Tree of Thoughts | 120.5s | 140.5s | ~20s | 43 |
+| 9 — ReAct | 140s | 159s | ~19s | 41 |
+| 10 — Prompt Chaining | 158.5s | 177.5s | ~19s | 42 |
+| 11 — Comparison | 177s | 223s | ~46s | 100 |
+| 12 — Conclusion | 222.5s | 241.5s | ~19s | 42 |
 
 ---
 
 ## Full narration (TTS-ready)
 
-What if I told you most people are using AI completely wrong? Not because of the AI — but because of how they talk to it. Same model. Same question. Completely different results. The difference is the technique. There are eight prompt engineering techniques. Master them, and your AI becomes a completely different tool.
+Prompt engineering is the practice of structuring your inputs to get better, more reliable outputs from AI language models. Rather than accepting whatever the model produces by default, you can guide it through technique toward precise, useful answers. This video covers eight core techniques.
 
-We'll use one prompt throughout this video: Explain machine learning. Same question. Every time. Watch what changes.
+We will test each technique on the same prompt: My Python code is slow. How do I make it faster? So you can directly compare what each technique produces.
 
-Technique one. Zero-Shot. You ask the question directly — no context, no guidance, no examples. The response is technically correct, but generic and shallow. The AI doesn't know who you are, what you need, or how much you already know.
+Zero-shot means asking directly, no instructions or examples. The model relies entirely on its training data and produces a generic, technically correct baseline. It works for simple queries, but offers no way to shape tone, depth, or format.
 
-Technique two. Role Prompting. Give the AI a persona and tell it who to be. We say: You are a teacher explaining to a ten-year-old. Suddenly the response transforms — clear, simple, actually engaging. Same topic. Completely different energy.
+Role prompting assigns a persona before your question. Specifying You are a senior Python engineer anchors the model perspective, vocabulary, and depth. The response becomes expert-level and audience-aware. Same question, fundamentally different output.
 
-Technique three. Few-Shot Prompting. This time, we lead with examples — two question-and-answer pairs as a guide. Then we ask our question. The AI recognises the pattern and mirrors it. Short, punchy, beginner-friendly. Your examples teach it the answer style you want.
+Few-shot prompting provides example question answer pairs before your actual question. The model recognises the pattern and replicates it. This is effective when you need consistent output format, tone, or length. Your examples define the standard.
 
-Technique four. Chain of Thought. Add just three words to any prompt: Think step by step. Instead of jumping straight to a final answer, the AI shows its reasoning. Step one. Step two. Step three. Step four. This is powerful for anything technical or complex. You're not just getting an answer. You're getting the thinking behind it.
+Chain-of-thought prompting instructs the model to reason before answering. Adding Think step by step surfaces intermediate logic. The model diagnoses first, evaluates options, then recommends. For technical or multi-step problems, showing the reasoning makes the answer verifiable and more reliable.
 
-Technique five. Self-Consistency. Run the same prompt multiple times. You get slightly different answers each time. Pick the one that appears most often. It's like asking three experts the same question and going with the consensus. More reliable. More accurate.
+Self-consistency runs the same prompt multiple times and selects the most frequent answer. Language models are probabilistic. The same prompt can produce different outputs. Majority voting across multiple samples improves accuracy, especially for tasks where a single unreliable answer carries risk.
 
-Technique six. Tree of Thoughts. Instead of one straight line of reasoning, the AI explores multiple paths — like branches of a tree. It evaluates each path, prunes the weak ones, and follows the strongest. Better decisions. Fewer dead ends.
+Tree-of-thoughts extends chain-of-thought by exploring multiple reasoning paths simultaneously. The model evaluates each path, prunes weaker approaches, and synthesises a final answer from the strongest. It is effective for complex, open-ended problems where there is no single obvious solution path.
 
-Technique seven. ReAct. Reasoning plus Acting. The AI thinks step by step, and between each thought, it takes an action — like searching the web or running code. Thought. Action. Observation. Repeat. This is how real AI agents operate.
+ReAct, Reasoning and Acting, interleaves thinking with tool use. The model follows a Thought, Action, Observation loop: form a hypothesis, take an action, observe the result, then reason again. This is the pattern underlying most autonomous AI agent systems.
 
-Technique eight. Prompt Chaining. Break complex tasks into smaller steps. Feed each AI response as input to the next prompt. Like an assembly line — each step builds on the last. Output quality compounds at every stage.
+Prompt chaining breaks a complex task into a sequence of smaller prompts, where each output feeds into the next. Rather than asking one prompt to do everything, you decompose the problem. Each step specialises and builds on the last.
 
-Now let's look at all eight techniques side by side. Zero-Shot — generic, no direction. Role Prompting — targeted, tailored to your audience. Few-Shot — precise, pattern-matched quality. Chain of Thought — structured, deep, reasoned logic. Self-Consistency — reliable, verified across multiple runs. Tree of Thoughts — exploratory, following the strongest path. ReAct — dynamic, reasoning and acting in real time. Prompt Chaining — powerful, building step by step toward complex goals. Same question. Every single time. The only variable is the prompt. Stack these techniques, and you don't just get better answers — you unlock what AI was actually built to do.
+Now let us review all eight techniques. Zero-shot gives a generic baseline, useful as a starting point. Role prompting adds context and expertise, shaping tone and depth. Few-shot enforces format and style through examples. Chain-of-thought forces explicit reasoning, ideal for complex problems. Self-consistency improves reliability by sampling multiple outputs. Tree-of-thoughts explores competing approaches and synthesises the best. ReAct integrates tool use with reasoning for dynamic tasks. Prompt chaining decomposes complexity across a structured sequence. These techniques are not mutually exclusive. They can be combined. Role prompting paired with chain-of-thought, or few-shot paired with chaining, often outperforms either technique alone.
 
-Prompt engineering isn't magic. It's communication. The clearer you are, the better the AI performs. These eight techniques are skills anyone can learn. And once you have them, every AI tool you use becomes ten times more powerful. Master the prompt. Master the AI.
+Prompt engineering is a design skill, not a shortcut. Understanding which technique suits which task will consistently improve your results across any language model. These eight techniques form the core toolkit. Practice them, combine them, and apply them deliberately.

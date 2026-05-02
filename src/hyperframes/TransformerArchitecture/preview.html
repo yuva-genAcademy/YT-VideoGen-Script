@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Preview — The Transformer Architecture</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    #stage {
+      position: relative;
+      width: 100vw;
+      height: calc(100vw * 9 / 16);
+      max-height: 100vh;
+      max-width: calc(100vh * 16 / 9);
+      overflow: hidden;
+    }
+
+    #scaler {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: top left;
+    }
+
+    iframe {
+      border: none;
+      width: 1920px;
+      height: 1080px;
+      display: block;
+    }
+
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(0,0,0,0.80);
+      backdrop-filter: blur(12px);
+      border-radius: 40px;
+      padding: 10px 20px;
+      z-index: 9999;
+    }
+
+    button {
+      background: #2563EB;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background 0.15s;
+    }
+    button:hover { background: #3B82F6; }
+    button:disabled { background: #444; color: #888; cursor: default; }
+
+    #scrubber {
+      width: 360px;
+      accent-color: #2563EB;
+      cursor: pointer;
+    }
+
+    #timecode {
+      color: #ccc;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      min-width: 80px;
+      text-align: right;
+    }
+
+    #scene-label {
+      color: #93C5FD;
+      font-size: 12px;
+      font-weight: 600;
+      min-width: 220px;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="scaler">
+    <iframe id="comp" src="index.html"></iframe>
+  </div>
+</div>
+
+<div id="controls">
+  <span id="scene-label">Loading…</span>
+  <button id="playBtn" disabled>▶ Play</button>
+  <button id="restartBtn" disabled>↺ Restart</button>
+  <input id="scrubber" type="range" min="0" max="375.34" step="0.1" value="0">
+  <span id="timecode">0:00 / 0:00</span>
+</div>
+
+<script>
+  const stage  = document.getElementById('stage');
+  const scaler = document.getElementById('scaler');
+
+  function rescale() {
+    const sw = stage.clientWidth;
+    const sh = stage.clientHeight;
+    const scale = Math.min(sw / 1920, sh / 1080);
+    scaler.style.transform = `scale(${scale})`;
+    scaler.style.left = Math.round((sw - 1920 * scale) / 2) + 'px';
+    scaler.style.top  = Math.round((sh - 1080 * scale) / 2) + 'px';
+  }
+  rescale();
+  window.addEventListener('resize', rescale);
+
+  const SCENES = [
+    { t: 0.0, label: '01 — Introduction' },
+    { t: 19.7, label: '02 — What It Replaced' },
+    { t: 71.7, label: '03 — Building Block' },
+    { t: 137.7, label: '04 — Encoder vs Decoder' },
+    { t: 197.9, label: '05 — How Generation Works' },
+    { t: 237.3, label: '06 — Why It Scales' },
+    { t: 291.6, label: '07 — KV Cache' },
+    { t: 336.3, label: '08 — Summary' }
+  ];
+
+  const TOTAL   = 375.34;
+  const COMP_ID = 'transformer-architecture';
+
+  function currentScene(t) {
+    let s = SCENES[0];
+    for (const sc of SCENES) { if (t >= sc.t) s = sc; else break; }
+    return s;
+  }
+
+  function fmt(s) {
+    const m = Math.floor(s / 60);
+    const ss = Math.floor(s % 60).toString().padStart(2, '0');
+    return `${m}:${ss}`;
+  }
+
+  const iframe     = document.getElementById('comp');
+  const playBtn    = document.getElementById('playBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const scrubber   = document.getElementById('scrubber');
+  const timecode   = document.getElementById('timecode');
+  const sceneLabel = document.getElementById('scene-label');
+
+  let tl, playing = false, rafId;
+
+  timecode.textContent = `0:00 / ${fmt(TOTAL)}`;
+
+  iframe.addEventListener('load', () => {
+    const win = iframe.contentWindow;
+    tl = win.__timelines?.[COMP_ID];
+
+    if (!tl) {
+      sceneLabel.textContent = `⚠ Timeline "${COMP_ID}" not found`;
+      return;
+    }
+
+    tl.seek(0);
+    scrubber.max = TOTAL;
+    playBtn.disabled    = false;
+    restartBtn.disabled = false;
+    sceneLabel.textContent = 'Ready — press Play';
+    timecode.textContent   = `0:00 / ${fmt(TOTAL)}`;
+  });
+
+  function tick() {
+    const t = tl.time();
+    scrubber.value = t;
+    timecode.textContent = `${fmt(t)} / ${fmt(TOTAL)}`;
+    sceneLabel.textContent = currentScene(t).label;
+    if (t >= TOTAL || !playing) { stopPlay(); return; }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function startPlay() {
+    playing = true;
+    playBtn.textContent = '⏸ Pause';
+    tl.play();
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function stopPlay() {
+    playing = false;
+    playBtn.textContent = '▶ Play';
+    tl.pause();
+    cancelAnimationFrame(rafId);
+  }
+
+  playBtn.addEventListener('click', () => {
+    if (playing) stopPlay(); else startPlay();
+  });
+
+  restartBtn.addEventListener('click', () => {
+    stopPlay();
+    tl.seek(0);
+    scrubber.value = 0;
+    sceneLabel.textContent = SCENES[0].label;
+    timecode.textContent = `0:00 / ${fmt(TOTAL)}`;
+    setTimeout(startPlay, 100);
+  });
+
+  scrubber.addEventListener('input', () => {
+    const t = parseFloat(scrubber.value);
+    const wasPlaying = playing;
+    stopPlay();
+    tl.seek(t);
+    timecode.textContent = `${fmt(t)} / ${fmt(TOTAL)}`;
+    sceneLabel.textContent = currentScene(t).label;
+    if (wasPlaying) setTimeout(startPlay, 50);
+  });
+</script>
+</body>
+</html>

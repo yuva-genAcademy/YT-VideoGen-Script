@@ -73,45 +73,42 @@
 
 
   <!-- ═══════════════════════════════════════════
-       SCENE 1 — HOOK  (0 – 15s)
-       Phase A (0–5s): vague prompt → bad response
-       Phase B (5–10s): insight — "It's the technique"
-       Phase C (10–15s): 8-technique list
+       SCENE 1 — INTRODUCTION  (0 – 20s)
+       Phase A (0–8s):  definition — "The practice of structuring your inputs"
+       Phase B (8–15s): insight   — "you can guide it. Through technique."
+       Phase C (15–20s): 8-technique list
   ═══════════════════════════════════════════════ -->
   <div id="s1" class="scene">
 
-    <!-- PHASE A: Bold hook — full-screen provocative statement -->
+    <!-- PHASE A: Definition -->
     <div id="s1a" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
-      <div id="s1a-l1" class="display" style="font-size:100px;color:#1C1917;letter-spacing:-2.5px;line-height:1.0;opacity:0;">
-        You're using AI wrong.
+      <div id="s1a-tag" class="tag" style="margin-bottom:18px;opacity:0;">Prompt Engineering</div>
+      <div id="s1a-l1" class="display" style="font-size:82px;color:#1C1917;letter-spacing:-2px;line-height:1.05;max-width:1400px;opacity:0;">
+        The practice of structuring your inputs
       </div>
-      <div id="s1a-l2" style="font-size:27px;color:#78716C;margin-top:22px;font-family:'DM Sans',sans-serif;opacity:0;">
-        And so is almost everyone else.
+      <div id="s1a-l2" class="display" style="font-size:82px;color:#1C1917;letter-spacing:-2px;line-height:1.05;max-width:1400px;opacity:0;">
+        to get better, more reliable outputs.
       </div>
-      <div id="s1a-l3" style="display:flex;align-items:center;gap:14px;margin-top:36px;opacity:0;">
-        <div style="width:44px;height:1.5px;background:#D6D3D1;"></div>
-        <span class="mono" style="font-size:14px;color:#A8A29E;letter-spacing:0.07em;">same AI &nbsp;·&nbsp; same question &nbsp;·&nbsp; different results</span>
-        <div style="width:44px;height:1.5px;background:#D6D3D1;"></div>
+      <div id="s1a-l3" style="font-size:24px;color:#78716C;margin-top:20px;font-family:'DM Sans',sans-serif;opacity:0;">
+        from AI language models.
       </div>
     </div>
 
-    <!-- PHASE B: Insight lines (hidden initially) -->
-    <div id="s1b" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-                         text-align:center;opacity:0;">
-      <div id="s1b-l1" class="display" style="font-size:80px;color:#1C1917;letter-spacing:-1.5px;line-height:1.1;">
-        The problem isn't the AI.
+    <!-- PHASE B: Guide through technique -->
+    <div id="s1b" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;opacity:0;width:1500px;">
+      <div id="s1b-l1" style="font-size:28px;color:#78716C;margin-bottom:28px;font-family:'DM Sans',sans-serif;opacity:0;">
+        Rather than accepting whatever the model produces by default —
       </div>
-      <svg id="s1b-u1" viewBox="0 0 660 18" style="width:660px;height:18px;display:block;margin:4px auto 20px;">
-        <path id="s1b-u1p" d="M4,12 L656,8" stroke="#000000" stroke-width="3" fill="none"
-              stroke-linecap="round" stroke-dasharray="660" stroke-dashoffset="660"/>
-      </svg>
-      <div id="s1b-l2" class="display" style="font-size:80px;color:#202E4A;letter-spacing:-1.5px;line-height:1.1;opacity:0;">
-        It's the technique.
+      <div id="s1b-l2" class="display" style="font-size:90px;color:#1C1917;letter-spacing:-2px;line-height:1.0;opacity:0;">
+        you can guide it.
       </div>
-      <svg id="s1b-u2" viewBox="0 0 430 18" style="width:430px;height:18px;display:block;margin:4px auto 0;">
-        <path id="s1b-u2p" d="M4,12 L426,8" stroke="#FEFB41" stroke-width="3" fill="none"
-              stroke-linecap="round" stroke-dasharray="430" stroke-dashoffset="430"/>
+      <svg id="s1b-u1" viewBox="0 0 520 18" style="width:520px;height:18px;display:block;margin:6px auto 28px;">
+        <path id="s1b-u1p" d="M4,12 L516,8" stroke="#FEFB41" stroke-width="3.5" fill="none"
+              stroke-linecap="round" stroke-dasharray="520" stroke-dashoffset="520"/>
       </svg>
+      <div id="s1b-l3" class="display" style="font-size:44px;color:#202E4A;letter-spacing:-0.5px;line-height:1.3;opacity:0;">
+        Through technique.<br>Toward precise, useful answers.
+      </div>
     </div>
 
     <!-- PHASE C: Technique list -->
@@ -973,6 +970,24 @@
     </div>
   </div>
 
+  <!-- Gen Academy Logo Watermark — persists across all scenes -->
+  <div style="position:absolute;bottom:28px;right:28px;z-index:100;border-radius:6px;padding:8px 14px;background:#000000;border:1px solid #333333;display:flex;flex-direction:row;gap:10px;align-items:center;">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <path d="M14 4 C8 4 4 8.5 4 13.5 C4 17 6 19.5 8.5 21 L8.5 23 L19.5 23 L19.5 21 C22 19.5 24 17 24 13.5 C24 8.5 20 4 14 4 Z" stroke="white" stroke-width="1.5" fill="none"/>
+      <line x1="9.5" y1="24.5" x2="18.5" y2="24.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="10.5" y1="26" x2="17.5" y2="26" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M10 13 C10 11 12 10 14 11 C16 10 18 11 18 13 C18 15 16 16 14 15.5 C12 16 10 15 10 13Z" stroke="#FEFB41" stroke-width="1" fill="none"/>
+      <path d="M14 11 L14 15.5" stroke="#FEFB41" stroke-width="0.8"/>
+      <path d="M11.5 12 C11.5 12 12.5 13.5 14 13" stroke="#FEFB41" stroke-width="0.8" fill="none"/>
+      <path d="M16.5 12 C16.5 12 15.5 13.5 14 13" stroke="#FEFB41" stroke-width="0.8" fill="none"/>
+    </svg>
+    <div style="width:1px;height:28px;background:#FEFB41;"></div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <div style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.15em;color:#FFFFFF;text-transform:uppercase;line-height:1;">Gen Academy</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:8px;color:#FEFB41;letter-spacing:0.05em;line-height:1;">AI Skills That Advance Careers.</div>
+    </div>
+  </div>
+
 </div><!-- /#root -->
 
 
@@ -985,252 +1000,351 @@
 
 
   // ═══════════════════════════════════════════
-  // SCENE 1  HOOK  (0 – 25.25s)
-  // Audio: 01_hook 0–10.88s + 02_what_is_pe 11.38–25.25s
+  // SCENE 1  INTRODUCTION  (0 – 20.53s)
+  // Audio s01: "Prompt engineering is the practice..." (0–19s)
+  //   0–9s:  definition sentence
+  //   9–16s: "Rather than accepting... you can guide it. Through technique."
+  //   16–19s: "This video covers eight core techniques."
   // ═══════════════════════════════════════════
   tl.set('#s1', { opacity: 1 }, 0);
 
-  ft('#s1a-l1', { opacity:0, y:24 }, { opacity:1, y:0, duration:0.75, ease:'power3.out' }, 0.2);
-  ft('#s1a-l2', { opacity:0, y:14 }, { opacity:1, y:0, duration:0.55, ease:'power2.out' }, 1.1);
-  ft('#s1a-l3', { opacity:0 },       { opacity:1, duration:0.5 },                          2.0);
-  tl.to('#s1a', { opacity:0, duration:0.4 }, 4.6);
+  // Phase A: Definition (0–8s)
+  // silence_end=1.237 → "is the practice of structuring"  → l1 at 1.04
+  // silence_end=3.605 → "better, more reliable"           → l2 at 3.40
+  // silence_end=4.604 → "from AI language models."        → l3 at 4.40
+  // silence_start=7.777 → sentence 1 ends                 → fade s1a at 7.80
+  ft('#s1a-tag', { opacity:0 },       { opacity:1, duration:0.5 },                           0.2);
+  ft('#s1a-l1',  { opacity:0, y:20 }, { opacity:1, y:0, duration:0.75, ease:'power3.out' },  1.04);
+  ft('#s1a-l2',  { opacity:0, y:20 }, { opacity:1, y:0, duration:0.7,  ease:'power3.out' },  3.40);
+  ft('#s1a-l3',  { opacity:0 },       { opacity:1, duration:0.5 },                           4.40);
+  tl.to('#s1a', { opacity:0, duration:0.4 }, 7.8);
 
-  // Phase B: "The problem isn't the AI." appears when audio says "Not because the AI is broken" (~5.9s)
-  // "It's the technique." appears when audio says "The difference is the technique." (~10.6s)
-  ft('#s1b', { opacity:0 }, { opacity:1, duration:0.3 }, 5.6);
-  ft('#s1b-l1', { opacity:0, y:18 }, { opacity:1, y:0, duration:0.6, ease:'power3.out' }, 5.7);
-  draw('#s1b-u1p', 660, 0.7, 6.4);
-  ft('#s1b-l2', { opacity:0, y:18 }, { opacity:1, y:0, duration:0.6, ease:'power3.out' }, 10.8);
-  draw('#s1b-u2p', 430, 0.65, 11.5);
-  tl.to('#s1b', { opacity:0, duration:0.4 }, 12.8);
+  // Phase B: "you can guide it — through technique" (8–15s in audio)
+  ft('#s1b',    { opacity:0 },       { opacity:1, duration:0.3 },                           8.2);
+  ft('#s1b-l1', { opacity:0 },       { opacity:1, duration:0.5 },                           8.3);
+  // silence_end=8.324  → sentence 2 starts: "Rather than accepting..."  → l2 ("you can guide it") at silence ~10.66 → show at 10.45
+  // silence_end=11.913 → "through technique" starts                          → l3 at 11.71
+  // silence_end=15.107 → "This video covers" starts                          → fade s1b at 14.9, s1c at 14.9
+  // silence_end=16.584 → "eight core techniques." starts                     → stagger at 16.38
+  ft('#s1b-l2', { opacity:0, y:20 }, { opacity:1, y:0, duration:0.65, ease:'power3.out' }, 10.45);
+  draw('#s1b-u1p', 520, 0.6, 11.0);
+  ft('#s1b-l3', { opacity:0, y:14 }, { opacity:1, y:0, duration:0.55, ease:'power2.out' }, 11.71);
+  tl.to('#s1b', { opacity:0, duration:0.4 }, 14.9);
 
-  // Phase C: "There are eight prompt engineering techniques." ~12.4s in audio
-  ft('#s1c', { opacity:0 }, { opacity:1, duration:0.3 }, 13.2);
-  draw('#s1c-divp', 400, 0.5, 13.3);
+  // Phase C: "This video covers eight core techniques." (15.107s in audio)
+  ft('#s1c', { opacity:0 }, { opacity:1, duration:0.3 }, 14.9);
+  draw('#s1c-divp', 400, 0.5, 15.0);
   ['#s1c-t1','#s1c-t2','#s1c-t3','#s1c-t4','#s1c-t5','#s1c-t6','#s1c-t7','#s1c-t8'].forEach((id, i) => {
-    ft(id, { opacity:0, x:-14 }, { opacity:1, x:0, duration:0.35, ease:'power2.out' }, 13.5 + i * 0.28);
+    ft(id, { opacity:0, x:-14 }, { opacity:1, x:0, duration:0.35, ease:'power2.out' }, 16.38 + i * 0.26);
   });
 
-  tl.to('#s1', { opacity:0, duration:0.5 }, 20.57);
-  tl.to('#flash', { opacity:0.5, duration:0.07 }, 20.97);
-  tl.to('#flash', { opacity:0, duration:0.25 }, 21.04);
+  tl.to('#s1', { opacity:0, duration:0.5 }, 20.53);
+  tl.to('#flash', { opacity:0.5, duration:0.07 }, 20.93);
+  tl.to('#flash', { opacity:0, duration:0.25 }, 21.0);
 
 
   // ═══════════════════════════════════════════
   // SCENE 2  BASE PROMPT  (25.75 – 34s)
   // Audio: 03_base_prompt 25.75–34.00s
   // ═══════════════════════════════════════════
-  tl.set('#s2', { opacity:1 }, 21.07);
+  tl.set('#s2', { opacity:1 }, 21.03);
 
-  ft('#s2-tag',   { opacity:0 },        { opacity:1, duration:0.5 },                           21.37);
-  ft('#s2-card',  { opacity:0, y:36 }, { opacity:1, y:0, duration:0.75, ease:'power2.out' }, 21.87);
-  ft('#s2-note',  { opacity:0 },        { opacity:1, duration:0.55 },                          24.07);
-  ft('#s2-arrow', { opacity:0 },        { opacity:1, duration:0.4 },                           25.27);
-  tl.to('#s2-arrow', { y:12, duration:0.7, ease:'power1.inOut', yoyo:true, repeat:2 }, 25.57);
+  ft('#s2-tag',   { opacity:0 },        { opacity:1, duration:0.5 },                           21.33);
+  ft('#s2-card',  { opacity:0, y:36 }, { opacity:1, y:0, duration:0.75, ease:'power2.out' }, 21.83);
+  ft('#s2-note',  { opacity:0 },        { opacity:1, duration:0.55 },                          24.03);
+  ft('#s2-arrow', { opacity:0 },        { opacity:1, duration:0.4 },                           25.23);
+  tl.to('#s2-arrow', { y:12, duration:0.7, ease:'power1.inOut', yoyo:true, repeat:2 }, 25.53);
 
-  tl.to('#s2', { opacity:0, duration:0.5 }, 29.2);
-
-
-  // ═══════════════════════════════════════════
-  // SCENE 3  ZERO-SHOT  (34.5 – 53.25s)
-  // Audio: 04_zero_shot 34.50–53.25s
-  // ═══════════════════════════════════════════
-  tl.set('#s3', { opacity:1 }, 29.7);
-
-  ft('#s3-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 30.0);
-  ft('#s3-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 30.35);
-  draw('#s3-upath', 340, 0.65, 31.0);
-  ft('#s3-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         31.4);
-  ft('#s3-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 32.7);
-  ft('#s3-arr',    { opacity:0 }, { opacity:1, duration:0 }, 34.2);
-  draw('#s3-arrp', 90, 0.4, 34.2);
-  ft('#s3-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 34.7);
-  ft('#s3-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 39.7);
-
-  tl.to('#s3', { opacity:0, duration:0.5 }, 47.24);
+  // s02 fade-out: s03 sets at 29.54, fade together so no content overlap
+  tl.to('#s2', { opacity:0, duration:0.5 }, 29.54);
 
 
   // ═══════════════════════════════════════════
-  // SCENE 4  ROLE PROMPTING  (53.75 – 72.12s)
-  // Audio: 05_role_prompting 53.75–72.12s
+  // SCENE 3  ZERO-SHOT
+  // Audio s03: start=31.54  end=50.29
+  // scene_set = 31.54 - 2.0 = 29.54
+  // Silence-derived content timings (abs):
+  //   silence_end=33.941 → 'no instructions or examples' → prompt at 33.74
+  //   silence_end=36.468 → 'technically correct baseline' → arr+resp at 36.27
+  //   silence_end=46.980 → 'or format'                   → verdict at 46.78
   // ═══════════════════════════════════════════
-  tl.set('#s4', { opacity:1 }, 47.74);
+  tl.set('#s3', { opacity:1 }, 29.54);
 
-  ft('#s4-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 48.04);
-  ft('#s4-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 48.39);
-  draw('#s4-upath', 430, 0.7, 49.09);
-  ft('#s4-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         49.49);
-  ft('#s4-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 50.94);
-  ft('#s4-arr',    { opacity:0 }, { opacity:1, duration:0 }, 52.94);
-  draw('#s4-arrp', 90, 0.4, 52.94);
-  ft('#s4-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 53.44);
-  ft('#s4-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 58.24);
+  ft('#s3-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 29.84);
+  ft('#s3-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 30.19);
+  draw('#s3-upath', 340, 0.65, 30.84);
+  ft('#s3-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         31.24);
+  ft('#s3-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 33.74);
+  ft('#s3-arr',    { opacity:0 }, { opacity:1, duration:0 }, 36.07);
+  draw('#s3-arrp', 90, 0.4, 36.07);
+  ft('#s3-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 36.27);
+  ft('#s3-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 46.78);
 
-  tl.to('#s4', { opacity:0, duration:0.5 }, 63.98);
-
-
-  // ═══════════════════════════════════════════
-  // SCENE 5  FEW-SHOT  (72.62 – 91s)
-  // Audio: 06_few_shot 72.62–91.00s
-  // ═══════════════════════════════════════════
-  tl.set('#s5', { opacity:1 }, 64.48);
-
-  ft('#s5-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 64.78);
-  ft('#s5-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 65.13);
-  draw('#s5-upath', 570, 0.75, 65.83);
-  ft('#s5-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         66.23);
-  ft('#s5-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 67.68);
-  ft('#s5-ex1',    { opacity:0, x:-10 }, { opacity:1, x:0, duration:0.38 },                   69.28);
-  ft('#s5-ex2',    { opacity:0, x:-10 }, { opacity:1, x:0, duration:0.38 },                   70.78);
-  ft('#s5-q',      { opacity:0 },         { opacity:1, duration:0.38 },                         72.18);
-  ft('#s5-arr',    { opacity:0 }, { opacity:1, duration:0 }, 73.08);
-  draw('#s5-arrp', 90, 0.4, 73.08);
-  ft('#s5-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 73.58);
-  ft('#s5-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 74.98);
-
-  tl.to('#s5', { opacity:0, duration:0.5 }, 79.83);
+  // s03 fade-out: s04 sets at 48.44, fade together so no content overlap
+  tl.to('#s3', { opacity:0, duration:0.5 }, 48.44);
 
 
   // ═══════════════════════════════════════════
-  // SCENE 6  CHAIN-OF-THOUGHT  (91.5 – 117.75s)
-  // Audio: 07_chain_of_thought 91.50–117.75s
+  // SCENE 4  ROLE PROMPTING
+  // Audio s04: start=50.44  end=68.81
+  // scene_set = 50.44 - 2.0 = 48.44
+  // Silence-derived content timings (abs):
+  //   silence_end=53.914 → 'persona before your question' → prompt at 53.71
+  //   silence_end=56.942 → 'senior Python engineer'       → arr+resp at 56.74
+  //   silence_end=64.441 → long pause after content       → verdict at 64.24
   // ═══════════════════════════════════════════
-  tl.set('#s6', { opacity:1 }, 80.33);
+  tl.set('#s4', { opacity:1 }, 48.44);
 
-  ft('#s6-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 80.63);
-  ft('#s6-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 80.98);
-  draw('#s6-upath', 490, 0.7, 81.68);
-  ft('#s6-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         82.08);
-  ft('#s6-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 83.33);
-  ft('#s6-cot',    { opacity:0 },         { opacity:1, duration:0.5 },                         85.83);
-  ft('#s6-arr',    { opacity:0 }, { opacity:1, duration:0 }, 87.83);
-  draw('#s6-arrp', 90, 0.4, 87.83);
-  ft('#s6-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 88.33);
-  ft('#s6-s1',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   89.83);
-  ft('#s6-s2',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   92.33);
-  ft('#s6-s3',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   94.83);
-  ft('#s6-fin',    { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   97.33);
-  ft('#s6-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 100.83);
+  ft('#s4-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 48.74);
+  ft('#s4-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 49.09);
+  draw('#s4-upath', 430, 0.7, 49.74);
+  ft('#s4-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         50.14);
+  ft('#s4-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 53.71);
+  ft('#s4-arr',    { opacity:0 }, { opacity:1, duration:0 }, 56.54);
+  draw('#s4-arrp', 90, 0.4, 56.54);
+  ft('#s4-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 56.74);
+  ft('#s4-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 64.24);
 
-  tl.to('#s6', { opacity:0, duration:0.5 }, 103.06);
-
-
-  // ═══════════════════════════════════════════
-  // SCENE 7  SELF-CONSISTENCY  (118.25 – 136.25s)
-  // Audio: 08_self_consistency 118.25–136.25s
-  // ═══════════════════════════════════════════
-  tl.set('#s7', { opacity:1 }, 103.56);
-
-  ft('#s7-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 103.86);
-  ft('#s7-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 104.21);
-  draw('#s7-upath', 540, 0.7, 104.91);
-  ft('#s7-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         105.31);
-  ft('#s7-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 106.81);
-  ft('#s7-v1',     { opacity:0, x:-10 }, { opacity:1, x:0, duration:0.38 },                   108.31);
-  ft('#s7-v2',     { opacity:0, x:-10 }, { opacity:1, x:0, duration:0.38 },                   110.11);
-  ft('#s7-v3',     { opacity:0 },         { opacity:1, duration:0.38 },                         111.91);
-  ft('#s7-arr',    { opacity:0 }, { opacity:1, duration:0 }, 113.11);
-  draw('#s7-arrp', 90, 0.4, 113.11);
-  ft('#s7-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 113.61);
-  ft('#s7-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 116.81);
-
-  tl.to('#s7', { opacity:0, duration:0.5 }, 121.62);
-  tl.to('#flash', { opacity:0.5, duration:0.07 }, 122.02);
-  tl.to('#flash', { opacity:0, duration:0.25 }, 122.09);
+  // s04 fade-out: s05 sets at 67.36, fade together so no content overlap
+  tl.to('#s4', { opacity:0, duration:0.5 }, 67.36);
 
 
   // ═══════════════════════════════════════════
-  // SCENE 8  TREE-OF-THOUGHTS  (136.75 – 154.85s)
-  // Audio: 09_tree_of_thoughts 136.75–154.85s
+  // SCENE 5  FEW-SHOT
+  // Audio s05: start=69.36  end=87.74
+  // scene_set = 69.36 - 2.0 = 67.36
+  // Silence-derived content timings (abs):
+  //   silence_end=72.950 → 'before your actual question' → prompt at 72.75
+  //   silence_end=74.959 → 'recognises the pattern'      → ex1 at 74.76
+  //   silence_end=76.880 → clause end                     → ex2 at 76.68
+  //   silence_end=78.341 → longer pause                   → q at 78.14
+  //   arr+resp 1.5s after q
+  //   silence_end=83.505 → 'Your examples define'         → verdict at 83.30
   // ═══════════════════════════════════════════
-  tl.set('#s8', { opacity:1 }, 122.11);
+  tl.set('#s5', { opacity:1 }, 67.36);
 
-  ft('#s8-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 122.41);
-  ft('#s8-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 122.76);
-  draw('#s8-upath', 520, 0.7, 123.46);
-  ft('#s8-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         123.86);
-  ft('#s8-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 124.86);
-  ft('#s8-arr',    { opacity:0 }, { opacity:1, duration:0 }, 126.56);
-  draw('#s8-arrp', 90, 0.4, 126.56);
-  ft('#s8-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 127.06);
-  ft('#s8-a1',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.4 },                    128.36);
-  ft('#s8-a2',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.4 },                    130.56);
-  ft('#s8-a3',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.4 },                    132.76);
-  ft('#s8-synth',  { opacity:0, y:10 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 134.86);
-  ft('#s8-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 136.86);
+  ft('#s5-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 67.66);
+  ft('#s5-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 68.01);
+  draw('#s5-upath', 570, 0.75, 68.66);
+  ft('#s5-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         69.06);
+  ft('#s5-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 72.75);
+  ft('#s5-ex1',    { opacity:0, x:-10 }, { opacity:1, x:0, duration:0.38 },                   74.76);
+  ft('#s5-ex2',    { opacity:0, x:-10 }, { opacity:1, x:0, duration:0.38 },                   76.68);
+  ft('#s5-q',      { opacity:0 },         { opacity:1, duration:0.38 },                         78.14);
+  ft('#s5-arr',    { opacity:0 }, { opacity:1, duration:0 }, 79.64);
+  draw('#s5-arrp', 90, 0.4, 79.64);
+  ft('#s5-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 79.84);
+  ft('#s5-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 83.30);
 
-  tl.to('#s8', { opacity:0, duration:0.5 }, 140.76);
-  tl.to('#flash', { opacity:0.5, duration:0.07 }, 140.16);
-  tl.to('#flash', { opacity:0, duration:0.25 }, 140.23);
-
-
-  // ═══════════════════════════════════════════
-  // SCENE 9  REACT  (155.35 – 173.35s)
-  // Audio: 10_react 155.35–173.35s
-  // ═══════════════════════════════════════════
-  tl.set('#s9', { opacity:1 }, 141.26);
-
-  ft('#s9-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 141.56);
-  ft('#s9-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 141.91);
-  draw('#s9-upath', 200, 0.5, 142.51);
-  ft('#s9-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         142.91);
-  ft('#s9-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 143.91);
-  ft('#s9-arr',    { opacity:0 }, { opacity:1, duration:0 }, 145.91);
-  draw('#s9-arrp', 90, 0.4, 145.91);
-  ft('#s9-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 146.41);
-  ft('#s9-r1',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   147.71);
-  ft('#s9-r2',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   149.51);
-  ft('#s9-r3',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   151.31);
-  ft('#s9-r4',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   152.91);
-  ft('#s9-fin',    { opacity:0, x:12 }, { opacity:1, x:0, duration:0.5, ease:'back.out(1.3)' }, 154.41);
-  ft('#s9-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 156.41);
-
-  tl.to('#s9', { opacity:0, duration:0.5 }, 158.38);
-  tl.to('#flash', { opacity:0.5, duration:0.07 }, 159.21);
-  tl.to('#flash', { opacity:0, duration:0.25 }, 159.28);
+  // s05 fade-out: s06 sets at 85.55, fade together so no content overlap
+  tl.to('#s5', { opacity:0, duration:0.5 }, 85.55);
 
 
   // ═══════════════════════════════════════════
-  // SCENE 10  PROMPT CHAINING  (173.85 – 192.25s)
-  // Audio: 11_prompt_chaining 173.85–192.25s
+  // SCENE 6  CHAIN-OF-THOUGHT
+  // Audio s06: start=87.55  end=113.8
+  // scene_set = 87.55 - 2.0 = 85.55
+  // Silence-derived content timings (abs):
+  //   silence_end=91.947 → 'reason before answering'     → prompt at 91.75
+  //   silence_end=92.927 → 'Think step by step'          → cot at 92.73
+  //   arr at 93.70, resp at 94.20
+  //   silence_end=97.685 → 'diagnoses first'             → s1 at 97.48
+  //   silence_end=99.152 → 'evaluates options'           → s2 at 98.95
+  //   silence_end=100.491 → 'then recommends'            → s3 at 100.29
+  //   silence_end=103.106 → 'multi-step problems'        → fin at 102.91
+  //   silence_end=106.073 → 'answer verifiable'          → verdict at 105.87
   // ═══════════════════════════════════════════
-  tl.set('#s10', { opacity:1 }, 158.88);
+  tl.set('#s6', { opacity:1 }, 85.55);
 
-  ft('#s10-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 159.18);
-  ft('#s10-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 159.53);
-  draw('#s10-upath', 560, 0.75, 160.23);
-  ft('#s10-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         160.63);
-  ft('#s10-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 162.03);
-  ft('#s10-s1r',    { opacity:0 },         { opacity:1, duration:0.4 },                         164.53);
-  ft('#s10-arr',    { opacity:0 }, { opacity:1, duration:0 }, 166.23);
-  draw('#s10-arrp', 90, 0.4, 166.23);
-  ft('#s10-feeds',  { opacity:0 },         { opacity:1, duration:0.3 },                         166.73);
-  ft('#s10-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 167.23);
-  ft('#s10-s2r',    { opacity:0 },         { opacity:1, duration:0.4 },                         170.03);
-  ft('#s10-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 173.03);
+  ft('#s6-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 85.85);
+  ft('#s6-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 86.20);
+  draw('#s6-upath', 490, 0.7, 86.85);
+  ft('#s6-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         87.25);
+  ft('#s6-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 91.75);
+  ft('#s6-cot',    { opacity:0 },         { opacity:1, duration:0.5 },                         92.73);
+  ft('#s6-arr',    { opacity:0 }, { opacity:1, duration:0 }, 93.70);
+  draw('#s6-arrp', 90, 0.4, 93.70);
+  ft('#s6-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 94.20);
+  // silence_end=95.760 → "The model diagnoses first,"  → s1 at 95.56
+  // silence_end=97.645 → "evaluates options,"          → s2 at 97.45
+  // silence_end=99.112 → "then recommends."            → s3 at 98.91
+  // silence_end=100.451→ "For technical... problems"   → fin at 100.25
+  ft('#s6-s1',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   95.56);
+  ft('#s6-s2',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   97.45);
+  ft('#s6-s3',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   98.91);
+  ft('#s6-fin',    { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   100.25);
+  ft('#s6-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 105.87);
 
-  tl.to('#s10', { opacity:0, duration:0.5 }, 174.52);
-  tl.to('#flash', { opacity:0.5, duration:0.07 }, 177.23);
-  tl.to('#flash', { opacity:0, duration:0.25 }, 177.3);
+  // s06 fade-out: s07 sets at 107.18, fade together so no content overlap
+  tl.to('#s6', { opacity:0, duration:0.5 }, 107.18);
 
 
   // ═══════════════════════════════════════════
-  // SCENE 11  COMPARISON  (192.75 – 237.25s)
-  // Audio: 12_comparison 192.75–218.0s  (~25s, all 8 techniques)
-  //        13_formula    218.5 –237.25s (~18.75s, plays over this scene)
-  // Rows spaced at 2.5s each so voice can match animations
+  // SCENE 7  SELF-CONSISTENCY
+  // Audio s07: start=109.18  end=127.18
+  // scene_set = 109.18 - 2.0 = 107.18
+  // Silence-derived content timings (abs):
+  //   silence_end=112.611 → 'most frequent answer'        → prompt at 112.41
+  //   silence_end=114.681 → 'Language models probabilistic'→ v1 at 114.48
+  //   silence_end=116.757 → 'produce different outputs'   → v2 at 116.56
+  //   silence_end=119.347 → 'improves accuracy'           → v3 at 119.15
+  //   silence_end=121.674 →                               → arr+resp at 121.47
+  //   silence_end=123.105 →                               → verdict at 122.91
   // ═══════════════════════════════════════════
-  tl.set('#s11', { opacity:1 }, 175.02);
+  tl.set('#s7', { opacity:1 }, 107.18);
 
-  ft('#s11-title', { opacity:0, y:-18 }, { opacity:1, y:0, duration:0.65, ease:'power2.out' }, 175.42);
-  ft('#s11-hdr',   { opacity:0 },         { opacity:1, duration:0.5 },                          177.02);
-  tl.to('#s11-hdiv', { width:'1680px', duration:0.55, ease:'power2.out' }, 177.52);
+  ft('#s7-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 107.48);
+  ft('#s7-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 107.83);
+  draw('#s7-upath', 540, 0.7, 108.48);
+  ft('#s7-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         108.88);
+  ft('#s7-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 112.41);
+  ft('#s7-v1',     { opacity:0, x:-10 }, { opacity:1, x:0, duration:0.38 },                   114.48);
+  ft('#s7-v2',     { opacity:0, x:-10 }, { opacity:1, x:0, duration:0.38 },                   116.56);
+  ft('#s7-v3',     { opacity:0 },         { opacity:1, duration:0.38 },                         119.15);
+  ft('#s7-arr',    { opacity:0 }, { opacity:1, duration:0 }, 121.27);
+  draw('#s7-arrp', 90, 0.4, 121.27);
+  ft('#s7-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 121.47);
+  ft('#s7-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 122.91);
+
+  // s07 fade-out: s08 sets at 126.93, fade together so no content overlap
+  tl.to('#s7', { opacity:0, duration:0.5 }, 126.93);
+  tl.to('#flash', { opacity:0.5, duration:0.07 }, 127.83);
+  tl.to('#flash', { opacity:0, duration:0.25 }, 127.90);
+
+
+  // ═══════════════════════════════════════════
+  // SCENE 8  TREE-OF-THOUGHTS
+  // Audio s08: start=128.93  end=147.03
+  // scene_set = 128.93 - 2.0 = 126.93
+  // Silence-derived content timings (abs):
+  //   silence_end=134.505 → 'reasoning paths simultaneously' → prompt at 134.31
+  //   silence_end=136.459 → 'evaluates each path'            → a1 at 136.26
+  //   silence_end=138.107 → 'prunes weaker approaches'       → a2 at 137.91
+  //   silence_end=139.205 → short clause                     → a3 at 139.01
+  //   silence_end=141.604 → 'synthesises...strongest'        → synth at 141.40
+  //   silence_end=143.293 → 'open-ended problems'            → verdict at 143.09
+  // ═══════════════════════════════════════════
+  tl.set('#s8', { opacity:1 }, 126.93);
+
+  ft('#s8-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 127.23);
+  ft('#s8-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 127.58);
+  draw('#s8-upath', 520, 0.7, 128.23);
+  ft('#s8-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         128.63);
+  ft('#s8-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 134.31);
+  ft('#s8-arr',    { opacity:0 }, { opacity:1, duration:0 }, 136.06);
+  draw('#s8-arrp', 90, 0.4, 136.06);
+  ft('#s8-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 136.26);
+  ft('#s8-a1',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.4 },                    136.26);
+  ft('#s8-a2',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.4 },                    137.91);
+  ft('#s8-a3',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.4 },                    139.01);
+  ft('#s8-synth',  { opacity:0, y:10 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 141.40);
+  ft('#s8-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 143.09);
+
+  // s08 fade-out: s09 sets at 147.26, fade together so no content overlap
+  tl.to('#s8', { opacity:0, duration:0.5 }, 147.26);
+  tl.to('#flash', { opacity:0.5, duration:0.07 }, 147.76);
+  tl.to('#flash', { opacity:0, duration:0.25 }, 147.83);
+
+
+  // ═══════════════════════════════════════════
+  // SCENE 9  REACT
+  // Audio s09: start=149.26  end=167.26
+  // scene_set = 149.26 - 2.0 = 147.26
+  // Silence-derived content timings (abs):
+  //   silence_end=153.542 → 'interleaves thinking with tool use' → prompt at 153.34
+  //   arr at 154.20, resp at 154.70
+  //   silence_end=157.063 → 'form a hypothesis'                  → r1 (Thought) at 156.86
+  //   silence_end=158.548 → 'take an action'                     → r2 (Action) at 158.35
+  //   silence_end=160.794 → 'observe the result'                 → r3 (Observation) at 160.59
+  //   silence_end=162.300 → 'then reason again'                  → r4 at 162.10
+  //   fin at 163.80, verdict at 165.00
+  // ═══════════════════════════════════════════
+  tl.set('#s9', { opacity:1 }, 147.26);
+
+  ft('#s9-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 147.56);
+  ft('#s9-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 147.91);
+  draw('#s9-upath', 200, 0.5, 148.56);
+  ft('#s9-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         148.96);
+  ft('#s9-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 153.34);
+  ft('#s9-arr',    { opacity:0 }, { opacity:1, duration:0 }, 154.20);
+  draw('#s9-arrp', 90, 0.4, 154.20);
+  ft('#s9-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 154.70);
+  // TAO loop steps timed to silence_end boundaries:
+  // silence_end=157.063 → narrator just said 'form a hypothesis' → Thought step appears
+  // silence_end=158.548 → 'take an action'                       → Action step appears
+  // silence_end=160.794 → 'observe the result'                   → Observation step appears
+  // silence_end=162.300 → 'then reason again'                    → loop step appears
+  ft('#s9-r1',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   156.86);
+  ft('#s9-r2',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   158.35);
+  ft('#s9-r3',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   160.59);
+  ft('#s9-r4',     { opacity:0, x:12 }, { opacity:1, x:0, duration:0.38 },                   162.10);
+  ft('#s9-fin',    { opacity:0, x:12 }, { opacity:1, x:0, duration:0.5, ease:'back.out(1.3)' }, 163.80);
+  ft('#s9-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 165.00);
+
+  // s09 fade-out: s10 sets at 166.56, fade together so no content overlap
+  tl.to('#s9', { opacity:0, duration:0.5 }, 166.56);
+  tl.to('#flash', { opacity:0.5, duration:0.07 }, 167.06);
+  tl.to('#flash', { opacity:0, duration:0.25 }, 167.13);
+
+
+  // ═══════════════════════════════════════════
+  // SCENE 10  PROMPT CHAINING
+  // Audio s10: start=168.56  end=186.96
+  // scene_set = 168.56 - 2.0 = 166.56
+  // Silence-derived content timings (abs):
+  //   silence_end=173.257 → 'each output feeds into the next' → prompt at 173.06
+  //   silence_end=175.933 → 'do everything'                   → s1r at 175.73
+  //   arr at 177.00, feeds at 177.50, resp at 178.00
+  //   silence_end=180.339 →                                   → s2r at 180.14
+  //   silence_end=182.111 → 'specialises and builds'          → verdict at 181.91
+  // ═══════════════════════════════════════════
+  tl.set('#s10', { opacity:1 }, 166.56);
+
+  ft('#s10-tag',    { opacity:0, x:-20 }, { opacity:1, x:0, duration:0.4, ease:'power2.out' }, 166.86);
+  ft('#s10-name',   { opacity:0, x:-28 }, { opacity:1, x:0, duration:0.6, ease:'power3.out' }, 167.21);
+  draw('#s10-upath', 560, 0.75, 167.86);
+  ft('#s10-desc',   { opacity:0 },         { opacity:1, duration:0.5 },                         168.26);
+  ft('#s10-prompt', { opacity:0, x:-24 }, { opacity:1, x:0, duration:0.6, ease:'power2.out' }, 173.06);
+  ft('#s10-s1r',    { opacity:0 },         { opacity:1, duration:0.4 },                         175.73);
+  ft('#s10-arr',    { opacity:0 }, { opacity:1, duration:0 }, 177.00);
+  draw('#s10-arrp', 90, 0.4, 177.00);
+  ft('#s10-feeds',  { opacity:0 },         { opacity:1, duration:0.3 },                         177.50);
+  ft('#s10-resp',   { opacity:0, x:20 }, { opacity:1, x:0, duration:0.55, ease:'power2.out' }, 178.00);
+  ft('#s10-s2r',    { opacity:0 },         { opacity:1, duration:0.4 },                         180.14);
+  ft('#s10-verdict',{ opacity:0, y:18 }, { opacity:1, y:0, duration:0.5, ease:'back.out(1.3)' }, 181.91);
+
+  // s10 fade-out: s11 sets at 183.62, fade together so no content overlap
+  tl.to('#s10', { opacity:0, duration:0.5 }, 183.62);
+  tl.to('#flash', { opacity:0.5, duration:0.07 }, 184.12);
+  tl.to('#flash', { opacity:0, duration:0.25 }, 184.19);
+
+
+  // ═══════════════════════════════════════════
+  // SCENE 11  COMPARISON
+  // Audio s11: start=185.62  end=230.12  (dur=44.18s)
+  // scene_set = 185.62 - 2.0 = 183.62
+  // Silence-derived row timings (abs), 0.2s before narrator says each technique:
+  //   Row 1 (Zero-shot):       appears at 187.50 (narrator starts after 187.718 pause)
+  //   Row 2 (Role Prompting):  appears at 191.26 (silence_end=191.462 → row at 191.26)
+  //   Row 3 (Few-Shot):        appears at 195.19 (silence_end=195.390 → row at 195.19)
+  //   Row 4 (Chain-of-Thought):appears at 198.17 (silence_end=198.368 → row at 198.17)
+  //   Row 5 (Self-Consistency):appears at 202.33 (silence_end=202.533 → row at 202.33)
+  //   Row 6 (Tree-of-Thoughts):appears at 207.04 (silence_end=207.243 → row at 207.04)
+  //   Row 7 (ReAct):           appears at 209.66 (silence_end=209.861 → row at 209.66)
+  //   Row 8 (Prompt Chaining): appears at 214.99 (silence_end=215.188 → row at 214.99)
+  //   bdiv at 219.04  (silence_end=219.236 → 'not mutually exclusive')
+  //   foot at 221.60  (silence_end=221.803 → 'can be combined')
+  // ═══════════════════════════════════════════
+  tl.set('#s11', { opacity:1 }, 183.62);
+
+  ft('#s11-title', { opacity:0, y:-18 }, { opacity:1, y:0, duration:0.65, ease:'power2.out' }, 184.02);
+  ft('#s11-hdr',   { opacity:0 },         { opacity:1, duration:0.5 },                          185.62);
+  tl.to('#s11-hdiv', { width:'1680px', duration:0.55, ease:'power2.out' }, 186.12);
 
   const barPct = ['22%','50%','62%','78%','83%','87%','91%','95%'];
-  // Row timings: actual TTS rate = 94 words / 39.98s = 2.35 words/sec
-  // Each row appears 0.2s before narrator says the technique name
-  // intro "Now let's look..." = 10 words = 4.26s → base 192.75+4.26=197.01
-  const rowT = [179.1, 181.2, 184.2, 186.3, 189.3, 191.9, 195.3, 198.7];
+  // Row timings derived from silence_end boundaries in s11 audio (start=185.62):
+  // Each row appears 0.2s before the silence_end that precedes narrator's technique sentence
+  const rowT = [187.50, 191.26, 195.19, 198.17, 202.33, 207.04, 209.66, 214.99];
 
   for (let i = 1; i <= 8; i++) {
     const T = rowT[i - 1];
@@ -1238,40 +1352,50 @@
     tl.to(`#s11-b${i}`, { width: barPct[i-1], duration:1.5, ease:'power2.out' }, T + 0.4);
   }
 
-  tl.to('#s11-bdiv', { width:'1680px', duration:0.55, ease:'power2.out' }, 203.07);
-  ft('#s11-foot', { opacity:0 }, { opacity:1, duration:0.8 }, 205.27);
+  // bdiv: silence_end=219.236 → 'not mutually exclusive' → bdiv at 219.04
+  // foot: silence_end=221.803 → 'can be combined'        → foot at 221.60
+  tl.to('#s11-bdiv', { width:'1680px', duration:0.55, ease:'power2.out' }, 219.04);
+  ft('#s11-foot', { opacity:0 }, { opacity:1, duration:0.8 }, 221.60);
 
-  tl.to('#s11', { opacity:0, duration:0.6 }, 216.5);
+  // s11 fade-out: s12 sets at 229.80, fade together so no content overlap
+  tl.to('#s11', { opacity:0, duration:0.6 }, 229.80);
 
 
   // ═══════════════════════════════════════════
-  // SCENE 12  OUTRO  (237.75 – 258.75s)
-  // Audio: 14_outro 237.75–258.75s
+  // SCENE 12  CONCLUSION
+  // Audio s12: start=231.80  end=252.80
+  // scene_set = 231.80 - 2.0 = 229.80
+  // Silence-derived content timings (abs):
+  //   silence_end=232.954 → 'not a shortcut'             → stars+h1 visible at 231.0
+  //   silence_end=235.597 → 'across any language model'  → h2 visible at 232.50
+  //   silence_end=242.214 → 'core toolkit' (long pause)  → techIds start at 242.71
+  //   silence_end=245.081 →                               → close at 243.21
+  //   silence_end=246.166 →                               → cta at 245.58
   // ═══════════════════════════════════════════
-  tl.set('#s12', { opacity:1 }, 217.0);
+  tl.set('#s12', { opacity:1 }, 229.80);
 
-  ft('#s12-star1', { opacity:0, scale:0 }, { opacity:1, scale:1, duration:0.35, ease:'back.out(2)' }, 217.25);
-  ft('#s12-star2', { opacity:0, scale:0 }, { opacity:1, scale:1, duration:0.3,  ease:'back.out(2)' }, 217.55);
-  ft('#s12-star3', { opacity:0, scale:0 }, { opacity:1, scale:1, duration:0.3,  ease:'back.out(2)' }, 217.4);
+  ft('#s12-star1', { opacity:0, scale:0 }, { opacity:1, scale:1, duration:0.35, ease:'back.out(2)' }, 230.05);
+  ft('#s12-star2', { opacity:0, scale:0 }, { opacity:1, scale:1, duration:0.3,  ease:'back.out(2)' }, 230.35);
+  ft('#s12-star3', { opacity:0, scale:0 }, { opacity:1, scale:1, duration:0.3,  ease:'back.out(2)' }, 230.20);
 
-  ft('#s12-h1', { opacity:0, y:28 }, { opacity:1, y:0, duration:0.75, ease:'power3.out' }, 217.35);
-  draw('#s12-u1p', 680, 0.7, 218.15);
-  ft('#s12-h2', { opacity:0, y:14 }, { opacity:1, y:0, duration:0.55, ease:'power2.out' }, 218.85);
+  ft('#s12-h1', { opacity:0, y:28 }, { opacity:1, y:0, duration:0.75, ease:'power3.out' }, 230.15);
+  draw('#s12-u1p', 680, 0.7, 230.95);
+  ft('#s12-h2', { opacity:0, y:14 }, { opacity:1, y:0, duration:0.55, ease:'power2.out' }, 232.50);
 
   const techIds = ['#s12-t1','#s12-t2','#s12-t3','#s12-t4','#s12-t5','#s12-t6','#s12-t7','#s12-t8'];
   techIds.forEach((id, i) => {
-    ft(id, { opacity:0, y:10 }, { opacity:1, y:0, duration:0.38, ease:'power2.out' }, 240.5 + i * 0.22);
+    ft(id, { opacity:0, y:10 }, { opacity:1, y:0, duration:0.38, ease:'power2.out' }, 242.71 + i * 0.22);
   });
 
-  ft('#s12-close', { opacity:0, y:14 }, { opacity:1, y:0, duration:0.6, ease:'power2.out' }, 224.75);
-  draw('#s12-rulep', 1760, 0.8, 224.75, 'power2.out');
-  ft('#s12-cta', { opacity:0 }, { opacity:1, duration:0.7 }, 226.75);
+  ft('#s12-close', { opacity:0, y:14 }, { opacity:1, y:0, duration:0.6, ease:'power2.out' }, 243.21);
+  draw('#s12-rulep', 1760, 0.8, 243.21, 'power2.out');
+  ft('#s12-cta', { opacity:0 }, { opacity:1, duration:0.7 }, 245.58);
 
-  tl.to('#s12-star1', { rotate: 360,  duration:8, ease:'none' }, 218.25);
-  tl.to('#s12-star2', { rotate:-360,  duration:10, ease:'none' }, 218.25);
-  tl.to('#s12-star3', { rotate: 360,  duration:6, ease:'none' }, 218.25);
+  tl.to('#s12-star1', { rotate: 360,  duration:8, ease:'none' }, 231.00);
+  tl.to('#s12-star2', { rotate:-360,  duration:10, ease:'none' }, 231.00);
+  tl.to('#s12-star3', { rotate: 360,  duration:6, ease:'none' }, 231.00);
 
-  tl.set({}, {}, 238.0);
+  tl.set({}, {}, 248.8);
 
   window.__timelines = window.__timelines || {};
   window.__timelines['prompt-engineering'] = tl;

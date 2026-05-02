@@ -1,4 +1,1 @@
-import { registerRoot } from "remotion";
-import { RemotionRoot } from "./Root";
-
-registerRoot(RemotionRoot);
+// Entry point - HyperFrames projects are in src/hyperframes/

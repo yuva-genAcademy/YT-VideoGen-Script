@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Preview — Tokens and Tokenization</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    #stage {
+      position: relative;
+      width: 100vw;
+      height: calc(100vw * 9 / 16);
+      max-height: 100vh;
+      max-width: calc(100vh * 16 / 9);
+      overflow: hidden;
+    }
+
+    #scaler {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: top left;
+    }
+
+    iframe {
+      border: none;
+      width: 1920px;
+      height: 1080px;
+      display: block;
+    }
+
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(0,0,0,0.80);
+      backdrop-filter: blur(12px);
+      border-radius: 40px;
+      padding: 10px 20px;
+      z-index: 9999;
+    }
+
+    button {
+      background: #2563EB;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background 0.15s;
+    }
+    button:hover { background: #3B82F6; }
+    button:disabled { background: #444; color: #888; cursor: default; }
+
+    #renderBtn {
+      background: #059669;
+    }
+    #renderBtn:hover { background: #10B981; }
+    #renderBtn:disabled { background: #444; color: #888; }
+
+    #scrubber {
+      width: 360px;
+      accent-color: #2563EB;
+      cursor: pointer;
+    }
+
+    #timecode {
+      color: #ccc;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      min-width: 80px;
+      text-align: right;
+    }
+
+    #scene-label {
+      color: #93C5FD;
+      font-size: 12px;
+      font-weight: 600;
+      min-width: 200px;
+      letter-spacing: 0.04em;
+    }
+
+    /* Render overlay */
+    #render-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+    }
+    #render-overlay.visible { display: flex; }
+
+    #render-panel {
+      background: #1a1a2e;
+      border: 2px solid #2563EB;
+      border-radius: 16px;
+      padding: 40px 48px;
+      max-width: 640px;
+      width: 90%;
+      text-align: center;
+    }
+    #render-panel h2 {
+      color: #fff;
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+    #render-panel p {
+      color: #93C5FD;
+      font-size: 14px;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    #render-cmd {
+      background: #0f0f1a;
+      border: 1px solid #2563EB;
+      border-radius: 8px;
+      padding: 14px 20px;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 13px;
+      color: #60A5FA;
+      text-align: left;
+      margin-bottom: 20px;
+      user-select: all;
+      cursor: text;
+      word-break: break-all;
+    }
+    #render-panel .btn-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    #copyBtn  { background: #2563EB; }
+    #closeBtn { background: #374151; }
+    #closeBtn:hover { background: #4B5563; }
+  </style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="scaler">
+    <iframe id="comp" src="index.html"></iframe>
+  </div>
+</div>
+
+<div id="controls">
+  <span id="scene-label">Loading…</span>
+  <button id="playBtn"    disabled>▶ Play</button>
+  <button id="restartBtn" disabled>↺ Restart</button>
+  <input  id="scrubber" type="range" min="0" max="248" step="0.1" value="0">
+  <span   id="timecode">0:00 / 4:08</span>
+  <button id="renderBtn" disabled>⬛ Render</button>
+</div>
+
+<!-- Render command panel -->
+<div id="render-overlay">
+  <div id="render-panel">
+    <h2>Render with Audio</h2>
+    <p>
+      Run this command from the project root.<br>
+      The audio track (<code>audio/narration.wav</code>) is embedded in the composition and will be included automatically.
+    </p>
+    <div id="render-cmd">cd src/hyperframes/TokensAndTokenization &amp;&amp; npx hyperframes render --output renders/tokens-and-tokenization.mp4 --quality high --fps 30</div>
+    <div class="btn-row">
+      <button id="copyBtn">Copy Command</button>
+      <button id="closeBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Scale the 1920×1080 canvas to fill viewport ──────────────────────────
+  const stage  = document.getElementById('stage');
+  const scaler = document.getElementById('scaler');
+
+  function rescale() {
+    const sw = stage.clientWidth;
+    const sh = stage.clientHeight;
+    const scale = Math.min(sw / 1920, sh / 1080);
+    scaler.style.transform = `scale(${scale})`;
+    scaler.style.left = Math.round((sw - 1920 * scale) / 2) + 'px';
+    scaler.style.top  = Math.round((sh - 1080 * scale) / 2) + 'px';
+  }
+  rescale();
+  window.addEventListener('resize', rescale);
+
+  const SCENES = [
+    { t:   0.0,  label: '01 — What Is a Token' },
+    { t:  18.58, label: '02 — Why Tokenization Exists' },
+    { t:  43.17, label: '03 — How BPE Works' },
+    { t:  80.01, label: '04 — Tokens ≠ Words' },
+    { t: 106.59, label: '05 — Cost' },
+    { t: 131.91, label: '06 — Context Window' },
+    { t: 164.40, label: '07 — Model Behavior' },
+    { t: 191.04, label: '08 — Design Rules' },
+    { t: 222.31, label: '09 — Conclusion' },
+  ];
+
+  const TOTAL = 248;
+
+  function currentScene(t) {
+    let s = SCENES[0];
+    for (const sc of SCENES) { if (t >= sc.t) s = sc; else break; }
+    return s;
+  }
+
+  function fmt(s) {
+    const m = Math.floor(s / 60);
+    const ss = Math.floor(s % 60).toString().padStart(2, '0');
+    return `${m}:${ss}`;
+  }
+
+  const iframe     = document.getElementById('comp');
+  const playBtn    = document.getElementById('playBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const renderBtn  = document.getElementById('renderBtn');
+  const scrubber   = document.getElementById('scrubber');
+  const timecode   = document.getElementById('timecode');
+  const sceneLabel = document.getElementById('scene-label');
+
+  let tl, vo, playing = false, rafId;
+
+  timecode.textContent = `0:00 / ${fmt(TOTAL)}`;
+
+  iframe.addEventListener('load', () => {
+    const win = iframe.contentWindow;
+    tl = win.__timelines?.['tokens-and-tokenization'];
+    vo = win.document.getElementById('vo');
+
+    if (!tl) {
+      sceneLabel.textContent = '⚠ Timeline "tokens-and-tokenization" not found';
+      return;
+    }
+
+    tl.seek(0);
+    scrubber.max = TOTAL;
+    playBtn.disabled    = false;
+    restartBtn.disabled = false;
+    renderBtn.disabled  = false;
+    sceneLabel.textContent = 'Ready — press Play';
+    timecode.textContent   = `0:00 / ${fmt(TOTAL)}`;
+
+  });
+
+  function tick() {
+    const t = tl.time();
+    scrubber.value = t;
+    timecode.textContent = `${fmt(t)} / ${fmt(TOTAL)}`;
+    sceneLabel.textContent = currentScene(t).label;
+    if (t >= TOTAL || !playing) { stopPlay(); return; }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function startPlay() {
+    playing = true;
+    playBtn.textContent = '⏸ Pause';
+    // Always drive animation via GSAP (reliable)
+    tl.play();
+    rafId = requestAnimationFrame(tick);
+    // Also start audio if available (best-effort — won't break animation if blocked)
+    if (vo) vo.play().catch(() => {});
+  }
+
+  function stopPlay() {
+    playing = false;
+    playBtn.textContent = '▶ Play';
+    tl.pause();
+    cancelAnimationFrame(rafId);
+    if (vo) vo.pause();
+  }
+
+  playBtn.addEventListener('click', () => {
+    if (playing) stopPlay(); else startPlay();
+  });
+
+  restartBtn.addEventListener('click', () => {
+    stopPlay();
+    tl.seek(0);
+    if (vo) vo.currentTime = 0;
+    scrubber.value = 0;
+    sceneLabel.textContent = SCENES[0].label;
+    timecode.textContent = `0:00 / ${fmt(TOTAL)}`;
+    setTimeout(startPlay, 100);
+  });
+
+  scrubber.addEventListener('input', () => {
+    const t = parseFloat(scrubber.value);
+    const wasPlaying = playing;
+    stopPlay();
+    tl.seek(t);
+    if (vo) vo.currentTime = t;
+    timecode.textContent = `${fmt(t)} / ${fmt(TOTAL)}`;
+    sceneLabel.textContent = currentScene(t).label;
+    if (wasPlaying) setTimeout(startPlay, 50);
+  });
+
+  // ── Render panel ──────────────────────────────────────────────────────────
+  const overlay  = document.getElementById('render-overlay');
+  const copyBtn  = document.getElementById('copyBtn');
+  const closeBtn = document.getElementById('closeBtn');
+  const cmdEl    = document.getElementById('render-cmd');
+
+  renderBtn.addEventListener('click', () => {
+    stopPlay();
+    overlay.classList.add('visible');
+  });
+
+  copyBtn.addEventListener('click', () => {
+    const text = cmdEl.textContent.replace(/&amp;/g, '&');
+    navigator.clipboard.writeText(text).then(() => {
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => { copyBtn.textContent = 'Copy Command'; }, 2000);
+    });
+  });
+
+  closeBtn.addEventListener('click', () => {
+    overlay.classList.remove('visible');
+  });
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('visible');
+  });
+</script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 """
 Build narration.wav — generates each section at its exact GSAP start time,
 then auto-patches the GSAP fade-out timings so there's no dead silence
-between technique scenes.
+between scenes.
 
 Voice: bm_george (British male — expressive, natural intonation)
 """
@@ -46,18 +46,14 @@ SECTIONS = [
     # ── Target pace: 130 wpm  (words ÷ 130 × 60 = seconds) ────────────────
     # Start/end times are kept in sync with timestamps.json after every build.
     # Text is populated from SCRIPT_CLEAN.md below — do not add "text" keys here.
-    { "id": "s01", "label": "Introduction",    "start":   0.00, "end":  25.25 },
-    { "id": "s02", "label": "Base Prompt",     "start":  21.03, "end":  29.28 },
-    { "id": "s03", "label": "Zero-Shot",       "start":  31.54, "end":  50.29 },
-    { "id": "s04", "label": "Role Prompting",  "start":  50.44, "end":  68.81 },
-    { "id": "s05", "label": "Few-Shot",        "start":  69.36, "end":  87.74 },
-    { "id": "s06", "label": "Chain of Thought","start":  87.55, "end": 113.80 },
-    { "id": "s07", "label": "Self-Consistency","start": 109.18, "end": 127.18 },
-    { "id": "s08", "label": "Tree of Thoughts","start": 128.93, "end": 147.03 },
-    { "id": "s09", "label": "ReAct",           "start": 149.26, "end": 167.26 },
-    { "id": "s10", "label": "Prompt Chaining", "start": 168.56, "end": 186.96 },
-    { "id": "s11", "label": "Comparison",      "start": 185.62, "end": 230.12 },
-    { "id": "s12", "label": "Conclusion",      "start": 231.80, "end": 252.80 },
+    { "id": "s01", "label": "Picking Up From Tokens",          "start":   0.00, "end":  27.00 },
+    { "id": "s02", "label": "Neurons Weights and Activations", "start":  26.50, "end":  61.50 },
+    { "id": "s03", "label": "The Forward Pass",                "start":  61.00, "end":  86.00 },
+    { "id": "s04", "label": "The Loss Function",               "start":  85.50, "end": 110.50 },
+    { "id": "s05", "label": "Backpropagation",                 "start": 110.00, "end": 151.00 },
+    { "id": "s06", "label": "Gradient Descent",                "start": 150.50, "end": 177.50 },
+    { "id": "s07", "label": "Practical Implications",          "start": 177.00, "end": 213.00 },
+    { "id": "s08", "label": "Conclusion",                      "start": 212.50, "end": 242.50 },
 ]
 
 # Inject text from SCRIPT_CLEAN.md — this is the single source of truth
@@ -72,18 +68,14 @@ for _sec, _text in zip(SECTIONS, _narration_texts):
 # format: (gsap_selector, has_flash_after)
 # Current fade-out time is read dynamically from the HTML — no hardcoded values.
 GSAP_FADEOUTS = {
-    "s01": ("s1",  True),
-    "s02": ("s2",  False),
-    "s03": ("s3",  False),
-    "s04": ("s4",  False),
-    "s05": ("s5",  False),
-    "s06": ("s6",  False),
-    "s07": ("s7",  True),
-    "s08": ("s8",  True),
-    "s09": ("s9",  True),
-    "s10": ("s10", True),
-    "s11": ("s11", False),
-    # s12 has no explicit fade-out (video just ends)
+    "s01": ("s1", True),
+    "s02": ("s2", True),
+    "s03": ("s3", True),
+    "s04": ("s4", True),
+    "s05": ("s5", True),
+    "s06": ("s6", True),
+    "s07": ("s7", True),
+    # s08 has no explicit fade-out (video just ends)
 }
 
 TAIL_SILENCE = 1.5   # seconds after audio ends before scene fades out
@@ -274,7 +266,7 @@ def patch_gsap(section_durations):
 
         new_fade = round(max(min_fade, max_fade) if max_fade > min_fade else min_fade, 2)
 
-        dur_str = "0.6" if gsap_sel == "s11" else "0.5"
+        dur_str = "0.5"
 
         # Read current fade-out value from HTML (for flash offset calculation)
         cur_m = re.search(
@@ -328,7 +320,7 @@ def build():
     print(f"{'='*58}\n")
 
     # ── Step 1: Generate TTS for all sections ────────────────────────────
-    section_wavs = []     # wav paths (in SECTIONS order)
+    section_wavs = []
     section_durations = {}
 
     for i, sec in enumerate(SECTIONS):
@@ -353,7 +345,7 @@ def build():
     filter_parts = []
     mix_labels = []
     for idx, sec in enumerate(SECTIONS):
-        delay_ms = int(sec["start"] * 1000)   # use COMPACTED start time
+        delay_ms = int(sec["start"] * 1000)
         label = f"[a{idx}]"
         filter_parts.append(f"[{idx}]adelay={delay_ms}|{delay_ms}{label}")
         mix_labels.append(label)
@@ -366,7 +358,7 @@ def build():
     run(["ffmpeg", "-y"] + inputs + [
         "-filter_complex", filter_complex,
         "-map", "[out]",
-        "-t", str(new_total),   # trim to compacted video length
+        "-t", str(new_total),
         output,
     ])
 

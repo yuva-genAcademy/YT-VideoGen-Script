@@ -1,0 +1,62 @@
+{
+  "total_duration": 315.650667,
+  "voice": "bm_george",
+  "sections": [
+    {
+      "id": "s01",
+      "label": "Introduction",
+      "start": 0.0,
+      "audio_duration": 17.963,
+      "end": 22.0
+    },
+    {
+      "id": "s02",
+      "label": "What It Replaced",
+      "start": 19.96,
+      "audio_duration": 42.496,
+      "end": 62.96
+    },
+    {
+      "id": "s03",
+      "label": "Building Block",
+      "start": 64.46,
+      "audio_duration": 51.157,
+      "end": 116.46
+    },
+    {
+      "id": "s04",
+      "label": "Encoder vs Decoder",
+      "start": 117.62,
+      "audio_duration": 47.915,
+      "end": 165.62
+    },
+    {
+      "id": "s05",
+      "label": "How Generation Works",
+      "start": 167.53,
+      "audio_duration": 33.792,
+      "end": 202.53
+    },
+    {
+      "id": "s06",
+      "label": "Why It Scales",
+      "start": 203.32,
+      "audio_duration": 42.709,
+      "end": 246.32
+    },
+    {
+      "id": "s07",
+      "label": "KV Cache",
+      "start": 248.03,
+      "audio_duration": 38.251,
+      "end": 286.03
+    },
+    {
+      "id": "s08",
+      "label": "Summary",
+      "start": 288.28,
+      "audio_duration": 27.371,
+      "end": 316.28
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "total_duration": 247.974,
+  "voice": "bm_george",
+  "output_wav": "tokens-narration.wav",
+  "sections": [
+    {
+      "id": "s01",
+      "label": "What Is a Token",
+      "start": 0.0,
+      "audio_duration": 16.576,
+      "end": 18.0
+    },
+    {
+      "id": "s02",
+      "label": "Why Tokenization Exists",
+      "start": 18.58,
+      "audio_duration": 22.592,
+      "end": 42.58
+    },
+    {
+      "id": "s03",
+      "label": "How BPE Works",
+      "start": 43.17,
+      "audio_duration": 34.837,
+      "end": 78.67
+    },
+    {
+      "id": "s04",
+      "label": "Tokens Are Not Words",
+      "start": 80.01,
+      "audio_duration": 24.576,
+      "end": 106.51
+    },
+    {
+      "id": "s05",
+      "label": "Cost",
+      "start": 106.59,
+      "audio_duration": 23.317,
+      "end": 131.09
+    },
+    {
+      "id": "s06",
+      "label": "Context Window",
+      "start": 131.91,
+      "audio_duration": 30.485,
+      "end": 164.41
+    },
+    {
+      "id": "s07",
+      "label": "Model Behavior",
+      "start": 164.4,
+      "audio_duration": 24.64,
+      "end": 195.9
+    },
+    {
+      "id": "s08",
+      "label": "Practical Design Rules",
+      "start": 191.04,
+      "audio_duration": 29.269,
+      "end": 223.54
+    },
+    {
+      "id": "s09",
+      "label": "Conclusion",
+      "start": 222.31,
+      "audio_duration": 25.664,
+      "end": 249.81
+    }
+  ]
+}

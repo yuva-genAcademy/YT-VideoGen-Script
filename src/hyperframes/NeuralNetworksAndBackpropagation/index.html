@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Neural Networks and Backpropagation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #FDFCFB; overflow: hidden; }
+
+    #root {
+      position: relative; width: 1920px; height: 1080px; overflow: hidden;
+      background-color: #FDFCFB;
+      background-image:
+        linear-gradient(rgba(0,0,0,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+      font-family: 'DM Sans', sans-serif; color: #1C1917;
+    }
+
+    .scene { position: absolute; inset: 0; opacity: 0; }
+    .card { position: absolute; background: #FFFFFF; border-radius: 8px; padding: 36px 44px; }
+    .card-neutral { border: 3.5px solid #D0D0D0; box-shadow: 5px 5px 0 rgba(0,0,0,0.06); }
+    .card-black   { border: 3.5px solid #000000; box-shadow: 5px 5px 0 rgba(0,0,0,0.10); }
+    .card-yellow  { border: 3.5px solid #FEFB41; box-shadow: 5px 5px 0 rgba(254,251,65,0.30); }
+    .card-navy    { border: 3.5px solid #202E4A; box-shadow: 5px 5px 0 rgba(32,46,74,0.15); }
+
+    .display { font-family: 'Nunito', sans-serif; font-weight: 800; line-height: 1; }
+    .tag { font-size: 15px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase; color: #78716C; font-family: 'DM Sans', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; font-weight: 400; }
+    .card-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase; margin-bottom: 14px; color: #A8A29E; }
+
+    .badge {
+      display: inline-block; padding: 7px 16px; border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      background: #FEFB41; color: #000;
+    }
+    .badge-navy {
+      background: #202E4A; color: #fff;
+    }
+    .badge-outline {
+      background: transparent; border: 2px solid #000; color: #000;
+    }
+
+    /* Pipeline boxes */
+    .pipe-box {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 14px 26px; border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 600;
+      white-space: nowrap;
+    }
+    .pipe-dim  { background: #F5F5F4; border: 2.5px solid #D0D0D0; color: #B8B2AD; }
+    .pipe-main { background: #FFFFFF; border: 3px solid #1C1917; color: #1C1917; }
+    .pipe-hl   { background: rgba(254,251,65,0.18); border: 3px solid #FEFB41; color: #000; }
+    .pipe-out  { background: #FFFFFF; border: 3px solid #202E4A; color: #202E4A; }
+
+    /* Node circles for network diagrams */
+    .nn-node {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #FFFFFF; border: 2.5px solid #1C1917;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;
+      color: #1C1917; flex-shrink: 0;
+    }
+    .nn-node-hl {
+      background: rgba(254,251,65,0.2); border-color: #FEFB41;
+    }
+    .nn-node-dim {
+      border-color: #D0D0D0; color: #A8A29E;
+    }
+
+    #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 200; }
+  </style>
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden;">
+  <defs>
+    <filter id="sketch" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="3" seed="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <marker id="arrow-dark" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#1C1917"/>
+    </marker>
+    <marker id="arrow-dim" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#D0D0D0"/>
+    </marker>
+    <marker id="arrow-yellow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#FEFB41"/>
+    </marker>
+    <marker id="arrow-navy" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#202E4A"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#DC2626"/>
+    </marker>
+  </defs>
+</svg>
+
+<div id="root" data-composition-id="neural-networks-and-backpropagation" data-width="1920" data-height="1080">
+
+  <!-- NARRATION — generated by audio/build_narration.py -->
+  <audio id="vo"
+         class="clip"
+         src="audio/narration.wav"
+         data-start="0"
+         data-volume="1"
+         data-track-index="10" data-duration="224.37">
+  </audio>
+  <div id="flash"></div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 1 — Picking Up From Tokens (0 – 27s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s1" class="scene">
+
+    <!-- Module tag -->
+    <div id="s1-tag" class="tag" style="position:absolute;top:52px;left:50%;transform:translateX(-50%);white-space:nowrap;opacity:0;">
+      Neural Networks &amp; Backpropagation
+    </div>
+
+    <!-- Decorative large number -->
+    <div style="position:absolute;top:-40px;right:60px;font-family:'Nunito',sans-serif;font-size:340px;font-weight:700;color:rgba(254,251,65,0.10);line-height:1;user-select:none;">2</div>
+
+    <!-- Module 1 pipeline (dimmed) -->
+    <div id="s1-m1" style="position:absolute;top:380px;left:258px;display:flex;align-items:center;gap:0;opacity:0;">
+      <div class="pipe-box pipe-dim">Text</div>
+      <svg viewBox="0 0 70 24" style="width:70px;height:24px;flex-shrink:0;">
+        <line x1="0" y1="12" x2="55" y2="12" stroke="#D0D0D0" stroke-width="2" marker-end="url(#arrow-dim)"/>
+      </svg>
+      <div class="pipe-box pipe-dim">Tokens</div>
+      <svg viewBox="0 0 70 24" style="width:70px;height:24px;flex-shrink:0;">
+        <line x1="0" y1="12" x2="55" y2="12" stroke="#D0D0D0" stroke-width="2" marker-end="url(#arrow-dim)"/>
+      </svg>
+      <div class="pipe-box pipe-dim">IDs</div>
+      <svg viewBox="0 0 70 24" style="width:70px;height:24px;flex-shrink:0;">
+        <line x1="0" y1="12" x2="55" y2="12" stroke="#D0D0D0" stroke-width="2" marker-end="url(#arrow-dim)"/>
+      </svg>
+      <div class="pipe-box pipe-dim">Embeddings</div>
+    </div>
+
+    <!-- Module 1 label -->
+    <div id="s1-m1-lab" style="position:absolute;top:450px;left:258px;opacity:0;">
+      <span class="tag" style="font-size:12px;color:#C8C2BC;letter-spacing:3px;">← Module 1</span>
+    </div>
+
+    <!-- Connector arrow (Module 1 → NN) -->
+    <svg id="s1-conn-arr" viewBox="0 0 110 24" style="position:absolute;top:392px;left:928px;width:110px;height:24px;opacity:0;">
+      <line x1="0" y1="12" x2="95" y2="12" stroke="#1C1917" stroke-width="2.5" marker-end="url(#arrow-dark)"/>
+    </svg>
+
+    <!-- Neural Network box -->
+    <div id="s1-nn" style="position:absolute;top:360px;left:1038px;opacity:0;">
+      <div class="pipe-box pipe-hl" style="font-size:22px;padding:22px 40px;position:relative;">
+        Neural Network
+        <!-- Function Approximator label (above) -->
+        <div id="s1-fa" style="position:absolute;top:-48px;left:50%;transform:translateX(-50%);white-space:nowrap;opacity:0;">
+          <span class="badge" style="font-size:11px;">Function Approximator</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Output arrow -->
+    <svg id="s1-out-arr" viewBox="0 0 110 24" style="position:absolute;top:392px;left:1308px;width:110px;height:24px;opacity:0;">
+      <line x1="0" y1="12" x2="95" y2="12" stroke="#202E4A" stroke-width="2.5" marker-end="url(#arrow-navy)"/>
+    </svg>
+
+    <!-- Output box -->
+    <div id="s1-out" style="position:absolute;top:345px;left:1418px;opacity:0;">
+      <div class="pipe-box pipe-out" style="flex-direction:column;gap:6px;padding:18px 32px;text-align:center;min-width:180px;">
+        <span style="font-size:18px;color:#202E4A;font-weight:600;">prediction</span>
+        <span style="font-size:14px;color:#A8A29E;">classification</span>
+        <span style="font-size:14px;color:#A8A29E;">generated token</span>
+      </div>
+    </div>
+
+    <!-- Vertical divider between modules -->
+    <div id="s1-divider" style="position:absolute;top:310px;left:1008px;width:3px;height:220px;background:rgba(254,251,65,0.5);border-radius:2px;opacity:0;"></div>
+
+    <!-- Section label -->
+    <div id="s1-m2-lab" style="position:absolute;top:450px;left:1038px;opacity:0;">
+      <span class="tag" style="font-size:12px;color:#78716C;letter-spacing:3px;">This section →</span>
+    </div>
+
+    <!-- Title text at bottom -->
+    <div id="s1-title" style="position:absolute;bottom:96px;left:50%;transform:translateX(-50%);text-align:center;opacity:0;">
+      <div class="display" style="font-size:56px;color:#1C1917;letter-spacing:-1px;">
+        What processes the embeddings?
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 2 — Neurons, Weights, and Activations (26.5 – 61.5s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s2" class="scene">
+
+    <div style="position:absolute;top:-40px;right:60px;font-family:'Nunito',sans-serif;font-size:340px;font-weight:700;color:rgba(254,251,65,0.10);line-height:1;user-select:none;">N</div>
+
+    <div id="s2-tag" class="tag" style="position:absolute;top:52px;left:160px;">A Single Neuron</div>
+    <div id="s2-title" class="display" style="position:absolute;top:88px;left:160px;font-size:72px;color:#000;opacity:0;">
+      Neurons, Weights &amp; Activations
+    </div>
+    <svg id="s2-uline" viewBox="0 0 800 16" style="position:absolute;top:184px;left:160px;width:800px;height:16px;opacity:0;">
+      <path id="s2-upath" d="M4,12 L796,8" stroke="#FEFB41" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="800" stroke-dashoffset="800"/>
+    </svg>
+
+    <!-- Neuron diagram SVG (1920×1080, diagram centered below title) -->
+    <svg id="s2-svg" viewBox="0 0 1920 1080" style="position:absolute;inset:0;width:1920px;height:1080px;">
+
+      <!-- Input nodes (x=440, y=320,430,540,650) -->
+      <g id="s2-inputs" opacity="0">
+        <circle cx="440" cy="320" r="36" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+        <text x="440" y="326" text-anchor="middle" font-family="JetBrains Mono" font-size="16" font-weight="600" fill="#1C1917">x₁</text>
+        <circle cx="440" cy="430" r="36" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+        <text x="440" y="436" text-anchor="middle" font-family="JetBrains Mono" font-size="16" font-weight="600" fill="#1C1917">x₂</text>
+        <circle cx="440" cy="540" r="36" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+        <text x="440" y="546" text-anchor="middle" font-family="JetBrains Mono" font-size="16" font-weight="600" fill="#1C1917">x₃</text>
+        <circle cx="440" cy="650" r="36" fill="#FFFFFF" stroke="#D0D0D0" stroke-width="2"/>
+        <text x="440" y="656" text-anchor="middle" font-family="JetBrains Mono" font-size="16" font-weight="600" fill="#A8A29E">xₙ</text>
+        <text x="440" y="740" text-anchor="middle" font-family="DM Sans" font-size="22" fill="#A8A29E">⋮</text>
+        <text x="260" y="486" text-anchor="middle" font-family="DM Sans" font-size="18" font-weight="500" fill="#78716C">embedding</text>
+        <text x="260" y="508" text-anchor="middle" font-family="DM Sans" font-size="18" font-weight="500" fill="#78716C">dimensions</text>
+      </g>
+
+      <!-- Weight lines (x1→sum, with labels) -->
+      <g id="s2-weights" opacity="0">
+        <!-- Line from x₁ to Σ -->
+        <line x1="476" y1="320" x2="830" y2="485" stroke="#D0D0D0" stroke-width="1.5"/>
+        <!-- Weight label for w₁ -->
+        <rect x="610" y="356" width="64" height="26" rx="4" fill="rgba(254,251,65,0.25)" stroke="rgba(254,251,65,0.6)" stroke-width="1"/>
+        <text x="642" y="374" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="600" fill="#000">×w₁</text>
+
+        <!-- Line from x₂ to Σ -->
+        <line x1="476" y1="430" x2="830" y2="495" stroke="#D0D0D0" stroke-width="1.5"/>
+        <rect x="615" y="444" width="64" height="26" rx="4" fill="rgba(254,251,65,0.25)" stroke="rgba(254,251,65,0.6)" stroke-width="1"/>
+        <text x="647" y="462" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="600" fill="#000">×w₂</text>
+
+        <!-- Line from x₃ to Σ -->
+        <line x1="476" y1="540" x2="830" y2="510" stroke="#D0D0D0" stroke-width="1.5"/>
+        <rect x="615" y="528" width="64" height="26" rx="4" fill="rgba(254,251,65,0.25)" stroke="rgba(254,251,65,0.6)" stroke-width="1"/>
+        <text x="647" y="546" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="600" fill="#000">×w₃</text>
+
+        <!-- Line from xₙ to Σ -->
+        <line x1="476" y1="650" x2="830" y2="520" stroke="#D0D0D0" stroke-width="1.5" stroke-dasharray="6,3"/>
+        <rect x="615" y="596" width="64" height="26" rx="4" fill="rgba(200,200,200,0.2)" stroke="#D0D0D0" stroke-width="1"/>
+        <text x="647" y="614" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="600" fill="#A8A29E">×wₙ</text>
+      </g>
+
+      <!-- Summation node -->
+      <g id="s2-sum" opacity="0">
+        <circle cx="880" cy="500" r="50" fill="#FFFFFF" stroke="#1C1917" stroke-width="3"/>
+        <text x="880" y="510" text-anchor="middle" font-family="DM Sans" font-size="36" font-weight="700" fill="#1C1917">Σ</text>
+        <text x="880" y="435" text-anchor="middle" font-family="DM Sans" font-size="14" fill="#78716C">sum</text>
+      </g>
+
+      <!-- Bias node and line (below Σ) -->
+      <g id="s2-bias" opacity="0">
+        <line x1="880" y1="720" x2="880" y2="554" stroke="#202E4A" stroke-width="2" stroke-dasharray="8,4" marker-end="url(#arrow-navy)"/>
+        <circle cx="880" cy="756" r="32" fill="#FFFFFF" stroke="#202E4A" stroke-width="2.5"/>
+        <text x="880" y="762" text-anchor="middle" font-family="JetBrains Mono" font-size="15" font-weight="600" fill="#202E4A">+b</text>
+        <text x="880" y="820" text-anchor="middle" font-family="DM Sans" font-size="16" fill="#78716C">bias</text>
+      </g>
+
+      <!-- Line: Σ → activation -->
+      <g id="s2-act-line" opacity="0">
+        <line x1="930" y1="500" x2="1130" y2="500" stroke="#1C1917" stroke-width="2.5" marker-end="url(#arrow-dark)"/>
+      </g>
+
+      <!-- Activation function box -->
+      <g id="s2-act" opacity="0">
+        <rect x="1150" y="452" width="160" height="96" rx="8" fill="#FFFFFF" stroke="#1C1917" stroke-width="3"/>
+        <text x="1230" y="495" text-anchor="middle" font-family="JetBrains Mono" font-size="26" font-weight="600" fill="#1C1917">f(·)</text>
+        <text x="1230" y="530" text-anchor="middle" font-family="DM Sans" font-size="15" fill="#78716C">activation</text>
+        <!-- Highlight rect for non-linearity badge -->
+        <line x1="1310" y1="500" x2="1430" y2="500" stroke="#1C1917" stroke-width="2.5" marker-end="url(#arrow-dark)"/>
+      </g>
+
+      <!-- Non-linearity label (appears over activation box) -->
+      <g id="s2-nl-label" opacity="0">
+        <rect x="1106" y="392" width="248" height="44" rx="6" fill="#FEFB41"/>
+        <text x="1230" y="420" text-anchor="middle" font-family="JetBrains Mono" font-size="14" font-weight="700" fill="#000" letter-spacing="2">NON-LINEARITY</text>
+      </g>
+
+      <!-- Output node -->
+      <g id="s2-output" opacity="0">
+        <circle cx="1480" cy="500" r="44" fill="rgba(254,251,65,0.15)" stroke="#FEFB41" stroke-width="3"/>
+        <text x="1480" y="497" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="600" fill="#000">output</text>
+        <text x="1480" y="515" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#78716C">value</text>
+      </g>
+
+      <!-- Collapse note (bottom center) -->
+      <g id="s2-collapse" opacity="0">
+        <rect x="680" y="870" width="560" height="110" rx="8" fill="#FFF5F5" stroke="#DC2626" stroke-width="2"/>
+        <text x="960" y="907" text-anchor="middle" font-family="DM Sans" font-size="15" font-weight="600" fill="#DC2626">Without activation functions:</text>
+        <text x="960" y="933" text-anchor="middle" font-family="DM Sans" font-size="15" fill="#44403C">all layers collapse to a</text>
+        <text x="960" y="956" text-anchor="middle" font-family="DM Sans" font-size="15" font-weight="600" fill="#1C1917">single linear transformation</text>
+      </g>
+
+    </svg>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 3 — The Forward Pass (61 – 86s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s3" class="scene">
+
+    <div style="position:absolute;top:-40px;right:60px;font-family:'Nunito',sans-serif;font-size:340px;font-weight:700;color:rgba(254,251,65,0.10);line-height:1;user-select:none;">→</div>
+
+    <div id="s3-tag" class="tag" style="position:absolute;top:52px;left:160px;">The Forward Pass</div>
+    <div id="s3-title" class="display" style="position:absolute;top:88px;left:160px;font-size:72px;color:#000;opacity:0;">
+      Input → Layers → Prediction
+    </div>
+    <svg id="s3-uline" viewBox="0 0 660 16" style="position:absolute;top:184px;left:160px;width:660px;height:16px;opacity:0;">
+      <path id="s3-upath" d="M4,12 L656,8" stroke="#FEFB41" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="660" stroke-dashoffset="660"/>
+    </svg>
+
+    <!-- Network diagram SVG -->
+    <svg id="s3-svg" viewBox="0 0 1920 1080" style="position:absolute;inset:0;width:1920px;height:1080px;">
+
+      <!-- Layer labels (appear first) -->
+      <g id="s3-labels" opacity="0">
+        <text x="340" y="260" text-anchor="middle" font-family="DM Sans" font-size="18" font-weight="600" fill="#78716C">INPUT</text>
+        <text x="340" y="283" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#A8A29E">embeddings</text>
+        <text x="840" y="260" text-anchor="middle" font-family="DM Sans" font-size="18" font-weight="600" fill="#78716C">HIDDEN 1</text>
+        <text x="1340" y="260" text-anchor="middle" font-family="DM Sans" font-size="18" font-weight="600" fill="#78716C">HIDDEN 2</text>
+        <text x="1620" y="260" text-anchor="middle" font-family="DM Sans" font-size="18" font-weight="600" fill="#78716C">OUTPUT</text>
+      </g>
+
+      <!-- Connection lines (L1→L2) -->
+      <g id="s3-conn1" opacity="0">
+        <line x1="370" y1="340" x2="810" y2="340" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="340" x2="810" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="340" x2="810" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="460" x2="810" y2="340" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="460" x2="810" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="460" x2="810" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="580" x2="810" y2="340" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="580" x2="810" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="580" x2="810" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="700" x2="810" y2="340" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="700" x2="810" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="700" x2="810" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="700" x2="810" y2="700" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="580" x2="810" y2="700" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="460" x2="810" y2="700" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="340" x2="810" y2="700" stroke="#E7E5E4" stroke-width="1.5"/>
+      </g>
+
+      <!-- Connection lines (L2→L3) -->
+      <g id="s3-conn2" opacity="0">
+        <line x1="870" y1="340" x2="1310" y2="340" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="340" x2="1310" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="340" x2="1310" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="460" x2="1310" y2="340" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="460" x2="1310" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="460" x2="1310" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="580" x2="1310" y2="340" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="580" x2="1310" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="580" x2="1310" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="700" x2="1310" y2="340" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="700" x2="1310" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="700" x2="1310" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+      </g>
+
+      <!-- Connection lines (L3→Output) -->
+      <g id="s3-conn3" opacity="0">
+        <line x1="1370" y1="340" x2="1585" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="1370" y1="340" x2="1585" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="1370" y1="460" x2="1585" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="1370" y1="460" x2="1585" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="1370" y1="580" x2="1585" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="1370" y1="580" x2="1585" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+      </g>
+
+      <!-- Input layer nodes -->
+      <g id="s3-l1" opacity="0">
+        <circle cx="340" cy="340" r="30" fill="#FFFFFF" stroke="#D0D0D0" stroke-width="2"/>
+        <circle cx="340" cy="460" r="30" fill="#FFFFFF" stroke="#D0D0D0" stroke-width="2"/>
+        <circle cx="340" cy="580" r="30" fill="#FFFFFF" stroke="#D0D0D0" stroke-width="2"/>
+        <circle cx="340" cy="700" r="30" fill="#FFFFFF" stroke="#D0D0D0" stroke-width="2"/>
+      </g>
+
+      <!-- Hidden layer 1 nodes -->
+      <g id="s3-l2" opacity="0">
+        <circle cx="840" cy="340" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+        <circle cx="840" cy="460" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+        <circle cx="840" cy="580" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+        <circle cx="840" cy="700" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+      </g>
+
+      <!-- Hidden layer 2 nodes -->
+      <g id="s3-l3" opacity="0">
+        <circle cx="1340" cy="340" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+        <circle cx="1340" cy="460" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+        <circle cx="1340" cy="580" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+      </g>
+
+      <!-- Output node -->
+      <g id="s3-out" opacity="0">
+        <circle cx="1620" cy="460" r="34" fill="rgba(254,251,65,0.2)" stroke="#FEFB41" stroke-width="3"/>
+        <circle cx="1620" cy="580" r="34" fill="rgba(254,251,65,0.2)" stroke="#FEFB41" stroke-width="3"/>
+        <text x="1760" y="516" text-anchor="start" font-family="DM Sans" font-size="18" font-weight="500" fill="#202E4A">prediction</text>
+      </g>
+
+      <!-- Forward pass dots: L1 → L2 (Phase A) -->
+      <circle id="s3-da1" r="11" cx="340" cy="340"  fill="#FEFB41" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <circle id="s3-da2" r="11" cx="340" cy="460"  fill="#FEFB41" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <circle id="s3-da3" r="11" cx="340" cy="580"  fill="#FEFB41" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <circle id="s3-da4" r="11" cx="340" cy="700"  fill="#FEFB41" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <!-- Forward pass dots: L2 → L3 (Phase B) -->
+      <circle id="s3-db1" r="11" cx="840" cy="340"  fill="#FEFB41" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <circle id="s3-db2" r="11" cx="840" cy="460"  fill="#FEFB41" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <circle id="s3-db3" r="11" cx="840" cy="580"  fill="#FEFB41" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <!-- Forward pass dots: L3 → Output (Phase C) -->
+      <circle id="s3-dc1" r="11" cx="1340" cy="340"  fill="#FEFB41" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <circle id="s3-dc2" r="11" cx="1340" cy="460"  fill="#FEFB41" stroke="#000" stroke-width="1.5" opacity="0"/>
+
+      <!-- Forward Pass label (appears when signal reaches output) -->
+      <g id="s3-fp-label" opacity="0">
+        <rect x="100" y="790" width="380" height="60" rx="8" fill="#FEFB41"/>
+        <text x="290" y="826" text-anchor="middle" font-family="JetBrains Mono" font-size="16" font-weight="700" fill="#000" letter-spacing="3">FORWARD PASS</text>
+      </g>
+
+      <!-- "Depends on its weights" callout -->
+      <g id="s3-weights-note" opacity="0">
+        <rect x="100" y="870" width="660" height="70" rx="8" fill="#FFFFFF" stroke="#D0D0D0" stroke-width="2"/>
+        <text x="430" y="904" text-anchor="middle" font-family="DM Sans" font-size="20" font-weight="400" fill="#78716C">Whether it is useful depends</text>
+        <text x="430" y="928" text-anchor="middle" font-family="DM Sans" font-size="20" font-weight="700" fill="#1C1917">entirely on its weights.</text>
+      </g>
+
+    </svg>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 4 — The Loss Function (85.5 – 110.5s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s4" class="scene">
+
+    <div style="position:absolute;top:-40px;right:60px;font-family:'Nunito',sans-serif;font-size:340px;font-weight:700;color:rgba(254,251,65,0.10);line-height:1;user-select:none;">L</div>
+
+    <div id="s4-tag" class="tag" style="position:absolute;top:52px;left:160px;">The Loss Function</div>
+    <div id="s4-title" class="display" style="position:absolute;top:88px;left:160px;font-size:72px;color:#000;opacity:0;">
+      Measuring How Wrong
+    </div>
+    <svg id="s4-uline" viewBox="0 0 560 16" style="position:absolute;top:184px;left:160px;width:560px;height:16px;opacity:0;">
+      <path id="s4-upath" d="M4,12 L556,8" stroke="#FEFB41" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="560" stroke-dashoffset="560"/>
+    </svg>
+
+    <!-- Prediction box -->
+    <div id="s4-pred" class="card card-neutral" style="top:290px;left:80px;width:380px;filter:url(#sketch);opacity:0;">
+      <div class="card-label">model prediction</div>
+      <div class="display" style="font-size:80px;color:#78716C;letter-spacing:-2px;">0.73</div>
+      <div style="font-size:17px;color:#A8A29E;margin-top:10px;font-family:'DM Sans',sans-serif;">what the network output</div>
+    </div>
+
+    <!-- True label box -->
+    <div id="s4-true" class="card card-black" style="top:290px;left:540px;width:380px;filter:url(#sketch);opacity:0;">
+      <div class="card-label">true label</div>
+      <div class="display" style="font-size:80px;color:#1C1917;letter-spacing:-2px;">1.00</div>
+      <div style="font-size:17px;color:#78716C;margin-top:10px;font-family:'DM Sans',sans-serif;">the correct answer</div>
+    </div>
+
+    <!-- Arrow to loss -->
+    <svg id="s4-arr1" viewBox="0 0 80 30" style="position:absolute;top:394px;left:938px;width:80px;height:30px;opacity:0;">
+      <path d="M0,15 Q40,5 72,15" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round" marker-end="url(#arrow-dark)" stroke-dasharray="90" stroke-dashoffset="90"/>
+    </svg>
+    <svg id="s4-arr2" viewBox="0 0 80 30" style="position:absolute;top:434px;left:938px;width:80px;height:30px;opacity:0;">
+      <path d="M0,15 Q40,25 72,15" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round" marker-end="url(#arrow-dark)" stroke-dasharray="90" stroke-dashoffset="90"/>
+    </svg>
+
+    <!-- Loss function box -->
+    <div id="s4-loss-box" class="card card-navy" style="top:310px;left:1040px;width:420px;filter:url(#sketch);opacity:0;">
+      <div class="card-label">loss function</div>
+      <div class="display" style="font-size:42px;color:#202E4A;letter-spacing:-1px;line-height:1.2;">
+        L(ŷ, y)
+      </div>
+      <div class="mono" style="font-size:24px;color:#202E4A;margin-top:6px;">= (ŷ − y)²</div>
+      <div style="font-size:17px;color:#78716C;margin-top:10px;font-family:'DM Sans',sans-serif;">measures prediction error</div>
+    </div>
+
+    <!-- Arrow to loss value -->
+    <svg id="s4-arr3" viewBox="0 0 80 30" style="position:absolute;top:414px;left:1458px;width:80px;height:30px;opacity:0;">
+      <line x1="0" y1="15" x2="65" y2="15" stroke="#000" stroke-width="2.5" marker-end="url(#arrow-dark)"/>
+    </svg>
+
+    <!-- Loss value (the error number) -->
+    <div id="s4-loss-val" style="position:absolute;top:360px;left:1560px;opacity:0;">
+      <div style="background:#FEFB41;border-radius:12px;padding:24px 40px;text-align:center;">
+        <div class="display" style="font-size:80px;color:#000;letter-spacing:-2px;">0.074</div>
+        <div style="font-size:16px;color:#44403C;margin-top:8px;font-family:'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;">the error</div>
+      </div>
+    </div>
+
+    <!-- Minimize arrow and label -->
+    <div id="s4-minimize" style="position:absolute;top:580px;left:50%;transform:translateX(-50%);text-align:center;opacity:0;">
+      <div style="font-size:26px;color:#78716C;font-family:'DM Sans',sans-serif;margin-bottom:12px;">
+        Training = systematically reducing this number
+      </div>
+      <svg viewBox="0 0 400 80" style="width:400px;height:80px;display:block;margin:0 auto;">
+        <line x1="200" y1="0" x2="200" y2="60" stroke="#1C1917" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow-dark)"/>
+        <text x="200" y="78" text-anchor="middle" font-family="JetBrains Mono" font-size="14" font-weight="700" fill="#000" letter-spacing="3">MINIMIZE</text>
+      </svg>
+    </div>
+
+    <!-- "Lower loss = better" note -->
+    <div id="s4-note" class="card card-yellow" style="bottom:80px;right:160px;padding:20px 36px;filter:url(#sketch);opacity:0;">
+      <div style="font-size:22px;color:#1C1917;font-family:'DM Sans',sans-serif;font-weight:600;">Lower loss = better predictions</div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 5 — Backpropagation (110 – 151s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s5" class="scene">
+
+    <div style="position:absolute;top:-40px;right:60px;font-family:'Nunito',sans-serif;font-size:340px;font-weight:700;color:rgba(254,251,65,0.10);line-height:1;user-select:none;">←</div>
+
+    <div id="s5-tag" class="tag" style="position:absolute;top:52px;left:160px;">Backpropagation</div>
+    <div id="s5-title" class="display" style="position:absolute;top:88px;left:160px;font-size:72px;color:#000;opacity:0;">
+      Computing Gradients
+    </div>
+    <svg id="s5-uline" viewBox="0 0 560 16" style="position:absolute;top:184px;left:160px;width:560px;height:16px;opacity:0;">
+      <path id="s5-upath" d="M4,12 L556,8" stroke="#FEFB41" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="560" stroke-dashoffset="560"/>
+    </svg>
+
+    <!-- Network SVG (same layout as Scene 3) -->
+    <svg id="s5-svg" viewBox="0 0 1920 1080" style="position:absolute;inset:0;width:1920px;height:1080px;">
+
+      <g id="s5-labels" opacity="0">
+        <text x="340" y="260" text-anchor="middle" font-family="DM Sans" font-size="18" font-weight="600" fill="#78716C">INPUT</text>
+        <text x="840" y="260" text-anchor="middle" font-family="DM Sans" font-size="18" font-weight="600" fill="#78716C">HIDDEN 1</text>
+        <text x="1340" y="260" text-anchor="middle" font-family="DM Sans" font-size="18" font-weight="600" fill="#78716C">HIDDEN 2</text>
+        <text x="1620" y="260" text-anchor="middle" font-family="DM Sans" font-size="18" font-weight="600" fill="#78716C">OUTPUT</text>
+      </g>
+
+      <!-- Connections (light) -->
+      <g id="s5-conn" opacity="0">
+        <line x1="370" y1="340" x2="810" y2="340" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="340" x2="810" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="340" x2="810" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="460" x2="810" y2="340" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="460" x2="810" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="460" x2="810" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="580" x2="810" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="370" y1="580" x2="810" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="340" x2="1310" y2="340" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="340" x2="1310" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="460" x2="1310" y2="340" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="460" x2="1310" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="460" x2="1310" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="580" x2="1310" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="870" y1="580" x2="1310" y2="580" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="1370" y1="340" x2="1585" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="1370" y1="460" x2="1585" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+        <line x1="1370" y1="580" x2="1585" y2="460" stroke="#E7E5E4" stroke-width="1.5"/>
+      </g>
+
+      <!-- Input layer nodes -->
+      <g id="s5-l1" opacity="0">
+        <circle cx="340" cy="340" r="30" fill="#FFFFFF" stroke="#D0D0D0" stroke-width="2"/>
+        <circle cx="340" cy="460" r="30" fill="#FFFFFF" stroke="#D0D0D0" stroke-width="2"/>
+        <circle cx="340" cy="580" r="30" fill="#FFFFFF" stroke="#D0D0D0" stroke-width="2"/>
+      </g>
+
+      <!-- Hidden layer nodes -->
+      <g id="s5-l2" opacity="0">
+        <circle cx="840" cy="340" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+        <circle cx="840" cy="460" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+        <circle cx="840" cy="580" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+      </g>
+
+      <g id="s5-l3" opacity="0">
+        <circle cx="1340" cy="340" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+        <circle cx="1340" cy="460" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+        <circle cx="1340" cy="580" r="30" fill="#FFFFFF" stroke="#1C1917" stroke-width="2.5"/>
+      </g>
+
+      <!-- Output node (showing loss) -->
+      <g id="s5-out" opacity="0">
+        <circle cx="1620" cy="460" r="34" fill="#FFF5F5" stroke="#DC2626" stroke-width="3"/>
+        <text x="1620" y="453" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="600" fill="#DC2626">LOSS</text>
+        <text x="1620" y="473" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#DC2626">0.074</text>
+      </g>
+
+      <!-- Backward pass dots: Output → L3 (Phase A) -->
+      <circle id="s5-da1" cx="1620" cy="460" r="11" fill="#DC2626" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <circle id="s5-da2" cx="1620" cy="460" r="11" fill="#DC2626" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <circle id="s5-da3" cx="1620" cy="460" r="11" fill="#DC2626" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <!-- Backward pass dots: L3 → L2 (Phase B) -->
+      <circle id="s5-db1" cx="1340" cy="340" r="11" fill="#DC2626" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <circle id="s5-db2" cx="1340" cy="460" r="11" fill="#DC2626" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <circle id="s5-db3" cx="1340" cy="580" r="11" fill="#DC2626" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <!-- Backward pass dots: L2 → L1 (Phase C) -->
+      <circle id="s5-dc1" cx="840" cy="340" r="11" fill="#DC2626" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <circle id="s5-dc2" cx="840" cy="460" r="11" fill="#DC2626" stroke="#000" stroke-width="1.5" opacity="0"/>
+      <circle id="s5-dc3" cx="840" cy="580" r="11" fill="#DC2626" stroke="#000" stroke-width="1.5" opacity="0"/>
+
+      <!-- Gradient values on weights (appear after signal) -->
+      <g id="s5-grads" opacity="0">
+        <!-- Highlighted connection lines (L3→output) -->
+        <line x1="1370" y1="340" x2="1585" y2="460" stroke="#DC2626" stroke-width="2"/>
+        <line x1="1370" y1="460" x2="1585" y2="460" stroke="#202E4A" stroke-width="2.5"/>
+        <line x1="1370" y1="580" x2="1585" y2="460" stroke="#DC2626" stroke-width="2"/>
+        <!-- Clean gradient side panel -->
+        <rect x="1655" y="350" width="230" height="210" rx="8" fill="#FDFCFB" stroke="#D0D0D0" stroke-width="1.5"/>
+        <text x="1770" y="382" text-anchor="middle" font-family="JetBrains Mono" font-size="12" font-weight="600" fill="#78716C" letter-spacing="2">∂L / ∂w</text>
+        <line x1="1665" y1="394" x2="1875" y2="394" stroke="#E7E5E4" stroke-width="1"/>
+        <text x="1685" y="426" font-family="JetBrains Mono" font-size="16" font-weight="600" fill="#DC2626">w₁</text>
+        <text x="1875" y="426" text-anchor="end" font-family="JetBrains Mono" font-size="16" font-weight="600" fill="#DC2626">−0.23</text>
+        <text x="1685" y="468" font-family="JetBrains Mono" font-size="16" font-weight="600" fill="#1C1917">w₂</text>
+        <text x="1875" y="468" text-anchor="end" font-family="JetBrains Mono" font-size="16" font-weight="600" fill="#1C1917">+0.41</text>
+        <text x="1685" y="510" font-family="JetBrains Mono" font-size="16" font-weight="600" fill="#DC2626">w₃</text>
+        <text x="1875" y="510" text-anchor="end" font-family="JetBrains Mono" font-size="16" font-weight="600" fill="#DC2626">−0.08</text>
+        <text x="1770" y="548" text-anchor="middle" font-family="DM Sans" font-size="13" fill="#78716C">gradient values</text>
+      </g>
+
+      <!-- Chain Rule badge -->
+      <g id="s5-chain-label" opacity="0">
+        <rect x="100" y="790" width="280" height="52" rx="8" fill="#FEFB41"/>
+        <text x="240" y="822" text-anchor="middle" font-family="JetBrains Mono" font-size="15" font-weight="700" fill="#000" letter-spacing="2">CHAIN RULE</text>
+      </g>
+
+      <!-- "Output layer first → Input layer last" -->
+      <g id="s5-direction" opacity="0">
+        <rect x="100" y="858" width="680" height="70" rx="8" fill="#FFFFFF" stroke="#D0D0D0" stroke-width="2"/>
+        <text x="440" y="890" text-anchor="middle" font-family="JetBrains Mono" font-size="14" fill="#78716C" letter-spacing="1">output layer first  →  input layer last</text>
+        <text x="440" y="914" text-anchor="middle" font-family="DM Sans" font-size="15" font-weight="600" fill="#1C1917">that is why it is called backpropagation</text>
+      </g>
+
+    </svg>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 6 — Gradient Descent (150.5 – 177.5s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s6" class="scene">
+
+    <div style="position:absolute;top:-40px;right:60px;font-family:'Nunito',sans-serif;font-size:340px;font-weight:700;color:rgba(254,251,65,0.10);line-height:1;user-select:none;">η</div>
+
+    <div id="s6-tag" class="tag" style="position:absolute;top:52px;left:160px;">Gradient Descent</div>
+    <div id="s6-title" class="display" style="position:absolute;top:88px;left:160px;font-size:72px;color:#000;opacity:0;">
+      The Learning Rate
+    </div>
+    <svg id="s6-uline" viewBox="0 0 480 16" style="position:absolute;top:184px;left:160px;width:480px;height:16px;opacity:0;">
+      <path id="s6-upath" d="M4,12 L476,8" stroke="#FEFB41" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="480" stroke-dashoffset="480"/>
+    </svg>
+
+    <!-- Loss landscape SVG -->
+    <svg id="s6-svg" viewBox="0 0 1920 1080" style="position:absolute;inset:0;width:1920px;height:1080px;">
+
+      <!-- Loss curve (bowl shape) -->
+      <g id="s6-curve" opacity="0">
+        <!-- Axes -->
+        <line x1="200" y1="840" x2="1720" y2="840" stroke="#D0D0D0" stroke-width="2"/>
+        <line x1="200" y1="840" x2="200" y2="280" stroke="#D0D0D0" stroke-width="2"/>
+        <text x="960" y="890" text-anchor="middle" font-family="DM Sans" font-size="18" fill="#A8A29E">weights (parameter space)</text>
+        <text x="140" y="560" text-anchor="middle" font-family="DM Sans" font-size="18" fill="#A8A29E" transform="rotate(-90, 140, 560)">loss</text>
+        <!-- Bowl curve: parabola from (240,760) through (960,310) to (1680,760) -->
+        <path d="M 240,760 Q 960,240 1680,760" fill="none" stroke="#1C1917" stroke-width="3" stroke-linecap="round"/>
+        <!-- Minimum marker -->
+        <line x1="960" y1="310" x2="960" y2="840" stroke="#D0D0D0" stroke-width="1.5" stroke-dasharray="8,4"/>
+        <text x="960" y="860" text-anchor="middle" font-family="JetBrains Mono" font-size="14" fill="#A8A29E">minimum</text>
+      </g>
+
+      <!-- Ball rolling down (positioned on the curve) -->
+      <g id="s6-ball" opacity="0">
+        <!-- Ball at position (400, 680) on the curve -->
+        <circle cx="400" cy="680" r="20" fill="#FEFB41" stroke="#000" stroke-width="2.5"/>
+        <!-- Step arrow showing gradient descent step -->
+        <line x1="400" y1="680" x2="510" y2="648" stroke="#1C1917" stroke-width="2.5" stroke-dasharray="6,3" marker-end="url(#arrow-dark)"/>
+        <line x1="510" y1="648" x2="620" y2="621" stroke="#1C1917" stroke-width="2.5" stroke-dasharray="6,3" marker-end="url(#arrow-dark)"/>
+        <line x1="620" y1="621" x2="730" y2="548" stroke="#1C1917" stroke-width="2.5" stroke-dasharray="6,3" marker-end="url(#arrow-dark)"/>
+        <!-- Step label -->
+        <rect x="390" y="580" width="80" height="30" rx="5" fill="rgba(254,251,65,0.3)" stroke="rgba(254,251,65,0.8)" stroke-width="1"/>
+        <text x="430" y="600" text-anchor="middle" font-family="JetBrains Mono" font-size="13" font-weight="600" fill="#000">step η</text>
+      </g>
+
+      <!-- Learning rate label -->
+      <g id="s6-lr-label" opacity="0">
+        <text x="560" y="310" text-anchor="middle" font-family="DM Sans" font-size="22" font-weight="700" fill="#1C1917">Learning Rate (η)</text>
+        <text x="560" y="340" text-anchor="middle" font-family="DM Sans" font-size="17" fill="#78716C">controls step size</text>
+      </g>
+
+      <!-- "Too high" overshoot illustration -->
+      <g id="s6-overshoot" opacity="0">
+        <rect x="1050" y="430" width="560" height="160" rx="8" fill="#FFF5F5" stroke="#DC2626" stroke-width="2.5"/>
+        <text x="1330" y="466" text-anchor="middle" font-family="JetBrains Mono" font-size="14" font-weight="700" fill="#DC2626" letter-spacing="2">η TOO HIGH</text>
+        <!-- Overshoot zigzag arrows -->
+        <line x1="1100" y1="540" x2="1200" y2="490" stroke="#DC2626" stroke-width="2.5" marker-end="url(#arrow-red)"/>
+        <line x1="1200" y1="490" x2="1300" y2="540" stroke="#DC2626" stroke-width="2.5" marker-end="url(#arrow-red)"/>
+        <line x1="1300" y1="540" x2="1400" y2="490" stroke="#DC2626" stroke-width="2.5" marker-end="url(#arrow-red)"/>
+        <line x1="1400" y1="490" x2="1500" y2="540" stroke="#DC2626" stroke-width="2.5" marker-end="url(#arrow-red)"/>
+        <text x="1330" y="574" text-anchor="middle" font-family="DM Sans" font-size="15" fill="#44403C">overshoots — training unstable</text>
+      </g>
+
+      <!-- "Too low" stall illustration -->
+      <g id="s6-stall" opacity="0">
+        <rect x="1050" y="616" width="560" height="140" rx="8" fill="#F5F5FF" stroke="#202E4A" stroke-width="2.5"/>
+        <text x="1330" y="650" text-anchor="middle" font-family="JetBrains Mono" font-size="14" font-weight="700" fill="#202E4A" letter-spacing="2">η TOO LOW</text>
+        <!-- Tiny step arrows -->
+        <line x1="1100" y1="720" x2="1115" y2="718" stroke="#202E4A" stroke-width="2" marker-end="url(#arrow-navy)"/>
+        <line x1="1125" y1="716" x2="1140" y2="714" stroke="#202E4A" stroke-width="2" marker-end="url(#arrow-navy)"/>
+        <line x1="1150" y1="712" x2="1165" y2="710" stroke="#202E4A" stroke-width="2" marker-end="url(#arrow-navy)"/>
+        <text x="1330" y="742" text-anchor="middle" font-family="DM Sans" font-size="15" fill="#44403C">converges slowly or stalls</text>
+      </g>
+
+    </svg>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 7 — Practical Implications (177 – 213s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s7" class="scene">
+
+    <div id="s7-tag" class="tag" style="position:absolute;top:52px;left:160px;">Practical Implications</div>
+    <div id="s7-title" class="display" style="position:absolute;top:88px;left:160px;font-size:72px;color:#000;opacity:0;">
+      Backprop Failure Modes
+    </div>
+    <svg id="s7-uline" viewBox="0 0 620 16" style="position:absolute;top:184px;left:160px;width:620px;height:16px;opacity:0;">
+      <path id="s7-upath" d="M4,12 L616,8" stroke="#FEFB41" stroke-width="3.5" fill="none"
+            stroke-linecap="round" stroke-dasharray="620" stroke-dashoffset="620"/>
+    </svg>
+
+    <!-- Card 1: Differentiable Ops Required -->
+    <div id="s7-card1" class="card card-black" style="top:260px;left:100px;width:520px;filter:url(#sketch);opacity:0;transform:translateY(30px);">
+      <div class="card-label">Problem 01</div>
+      <div class="display" style="font-size:34px;color:#000;margin-bottom:14px;">Differentiable Ops<br>Required</div>
+      <div style="font-size:17px;color:#78716C;line-height:1.6;font-family:'DM Sans',sans-serif;">
+        Every operation must have a gradient. Hard step functions cannot be backpropped through.
+      </div>
+      <!-- Solution badge -->
+      <div id="s7-sol1" style="margin-top:24px;opacity:0;">
+        <span class="badge">ReLU</span>
+        <span style="font-size:14px;color:#A8A29E;margin-left:10px;font-family:'DM Sans',sans-serif;">smooth, differentiable activation</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Vanishing Gradients -->
+    <div id="s7-card2" class="card card-black" style="top:260px;left:700px;width:520px;filter:url(#sketch);opacity:0;transform:translateY(30px);">
+      <div class="card-label">Problem 02</div>
+      <div class="display" style="font-size:34px;color:#000;margin-bottom:14px;">Vanishing<br>Gradients</div>
+      <div style="font-size:17px;color:#78716C;line-height:1.6;font-family:'DM Sans',sans-serif;">
+        Gradients shrink to near-zero as they propagate back through many layers. Early weights cannot learn.
+      </div>
+      <div id="s7-sol2" style="margin-top:24px;opacity:0;">
+        <span class="badge">Residual Connections</span>
+        <span style="font-size:14px;color:#A8A29E;margin-left:10px;font-family:'DM Sans',sans-serif;">skip connections preserve gradient flow</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Exploding Gradients -->
+    <div id="s7-card3" class="card card-black" style="top:260px;left:1300px;width:520px;filter:url(#sketch);opacity:0;transform:translateY(30px);">
+      <div class="card-label">Problem 03</div>
+      <div class="display" style="font-size:34px;color:#000;margin-bottom:14px;">Exploding<br>Gradients</div>
+      <div style="font-size:17px;color:#78716C;line-height:1.6;font-family:'DM Sans',sans-serif;">
+        The inverse: gradients grow unbounded, destabilizing weight updates entirely.
+      </div>
+      <div id="s7-sol3" style="margin-top:24px;opacity:0;">
+        <span class="badge">BatchNorm</span>
+        <span style="font-size:14px;color:#A8A29E;margin-left:10px;font-family:'DM Sans',sans-serif;">normalizes activations per layer</span>
+      </div>
+    </div>
+
+    <!-- Bottom note -->
+    <div id="s7-note" style="position:absolute;bottom:80px;left:160px;right:160px;text-align:center;opacity:0;">
+      <div style="font-size:22px;color:#78716C;font-family:'DM Sans',sans-serif;">
+        These are not cosmetic choices. They are
+        <span style="color:#000;font-weight:700;">structural responses to backprop failure modes.</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════
+       SCENE 8 — Conclusion (212.5 – 242.5s)
+  ═══════════════════════════════════════════════ -->
+  <div id="s8" class="scene">
+
+    <div id="s8-tag" class="tag" style="position:absolute;top:52px;left:50%;transform:translateX(-50%);white-space:nowrap;opacity:0;">
+      The Complete Picture
+    </div>
+
+    <!-- Two-module pipeline -->
+    <div id="s8-pipe" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0;">
+
+      <!-- Module 1 section -->
+      <div style="display:flex;align-items:flex-start;flex-direction:column;gap:24px;">
+
+        <!-- Module 1 label -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:-8px;">
+          <span class="tag" style="color:#A8A29E;font-size:11px;letter-spacing:4px;">MODULE 1</span>
+          <svg viewBox="0 0 200 4" style="width:200px;height:4px;"><rect x="0" y="0" width="200" height="4" rx="2" fill="#E7E5E4"/></svg>
+          <span class="tag" style="color:#A8A29E;font-size:11px;letter-spacing:4px;">MODULE 2</span>
+        </div>
+
+        <!-- Pipeline row -->
+        <div style="display:flex;align-items:center;gap:0;">
+
+          <!-- Module 1 boxes (slightly dimmed) -->
+          <div style="display:flex;align-items:center;gap:0;opacity:0.7;">
+            <div class="pipe-box pipe-main" style="font-size:17px;padding:12px 22px;">Text</div>
+            <svg viewBox="0 0 60 22" style="width:60px;height:22px;flex-shrink:0;">
+              <line x1="0" y1="11" x2="47" y2="11" stroke="#D0D0D0" stroke-width="2" marker-end="url(#arrow-dim)"/>
+            </svg>
+            <div class="pipe-box pipe-main" style="font-size:17px;padding:12px 22px;">Tokens</div>
+            <svg viewBox="0 0 60 22" style="width:60px;height:22px;flex-shrink:0;">
+              <line x1="0" y1="11" x2="47" y2="11" stroke="#D0D0D0" stroke-width="2" marker-end="url(#arrow-dim)"/>
+            </svg>
+            <div class="pipe-box pipe-main" style="font-size:17px;padding:12px 22px;">IDs</div>
+            <svg viewBox="0 0 60 22" style="width:60px;height:22px;flex-shrink:0;">
+              <line x1="0" y1="11" x2="47" y2="11" stroke="#D0D0D0" stroke-width="2" marker-end="url(#arrow-dim)"/>
+            </svg>
+            <div class="pipe-box pipe-main" style="font-size:17px;padding:12px 22px;">Embeddings</div>
+          </div>
+
+          <!-- Division line -->
+          <div style="width:3px;height:56px;background:rgba(254,251,65,0.6);border-radius:2px;margin:0 20px;"></div>
+
+          <!-- Neural Networks boxes (full opacity) -->
+          <div style="display:flex;align-items:center;gap:0;">
+            <div class="pipe-box pipe-hl" style="font-size:17px;padding:12px 22px;">Layers</div>
+            <svg viewBox="0 0 60 22" style="width:60px;height:22px;flex-shrink:0;">
+              <line x1="0" y1="11" x2="47" y2="11" stroke="#1C1917" stroke-width="2" marker-end="url(#arrow-dark)"/>
+            </svg>
+            <div class="pipe-box pipe-hl" style="font-size:17px;padding:12px 22px;">Loss</div>
+            <svg viewBox="0 0 60 22" style="width:60px;height:22px;flex-shrink:0;">
+              <line x1="0" y1="11" x2="47" y2="11" stroke="#1C1917" stroke-width="2" marker-end="url(#arrow-dark)"/>
+            </svg>
+            <div class="pipe-box pipe-hl" style="font-size:17px;padding:12px 22px;">Backprop</div>
+            <svg viewBox="0 0 60 22" style="width:60px;height:22px;flex-shrink:0;">
+              <line x1="0" y1="11" x2="47" y2="11" stroke="#1C1917" stroke-width="2" marker-end="url(#arrow-dark)"/>
+            </svg>
+            <div class="pipe-box pipe-hl" style="font-size:17px;padding:12px 22px;">Update ↺</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Computational Foundation label -->
+    <div id="s8-label" style="position:absolute;bottom:110px;left:50%;transform:translateX(-50%);text-align:center;opacity:0;">
+      <span class="badge" style="font-size:15px;padding:12px 36px;letter-spacing:4px;">Computational Foundation</span>
+      <div style="margin-top:18px;font-size:22px;color:#78716C;font-family:'DM Sans',sans-serif;">
+        of every modern neural network
+      </div>
+    </div>
+
+    <!-- Module labels below pipeline -->
+    <div id="s8-mod-labels" style="position:absolute;top:610px;left:50%;transform:translateX(-50%);display:flex;gap:340px;opacity:0;">
+      <span style="font-size:15px;color:#A8A29E;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:2px;">Tokens &amp; Tokenization</span>
+      <span style="font-size:15px;color:#1C1917;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:2px;">Neural Networks &amp; Backprop</span>
+    </div>
+  </div>
+
+  <!-- Gen Academy Logo Watermark — persists across all scenes -->
+  <div style="position:absolute;bottom:28px;right:28px;z-index:100;border-radius:6px;padding:8px 14px;background:#000000;border:1px solid #333333;display:flex;flex-direction:row;gap:10px;align-items:center;">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <path d="M14 4 C8 4 4 8.5 4 13.5 C4 17 6 19.5 8.5 21 L8.5 23 L19.5 23 L19.5 21 C22 19.5 24 17 24 13.5 C24 8.5 20 4 14 4 Z" stroke="white" stroke-width="1.5" fill="none"/>
+      <line x1="9.5" y1="24.5" x2="18.5" y2="24.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="10.5" y1="26" x2="17.5" y2="26" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M10 13 C10 11 12 10 14 11 C16 10 18 11 18 13 C18 15 16 16 14 15.5 C12 16 10 15 10 13Z" stroke="#FEFB41" stroke-width="1" fill="none"/>
+      <path d="M14 11 L14 15.5" stroke="#FEFB41" stroke-width="0.8"/>
+      <path d="M11.5 12 C11.5 12 12.5 13.5 14 13" stroke="#FEFB41" stroke-width="0.8" fill="none"/>
+      <path d="M16.5 12 C16.5 12 15.5 13.5 14 13" stroke="#FEFB41" stroke-width="0.8" fill="none"/>
+    </svg>
+    <div style="width:1px;height:28px;background:#FEFB41;"></div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <div style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.15em;color:#FFFFFF;text-transform:uppercase;line-height:1;">Gen Academy</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:8px;color:#FEFB41;letter-spacing:0.05em;line-height:1;">AI Skills That Advance Careers.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const tl = gsap.timeline({ paused: true });
+
+  // SCENE 1 — Picking Up From Tokens (audio: 0–27.07s)
+  // No "Module 1" label, no yellow divider, no separate connector arrow
+  tl.set('#s1', { opacity: 1 }, 0);
+  tl.to('#s1-tag', { opacity: 1, duration: 0.4 }, 0.3);
+  tl.to('#s1-m1', { opacity: 1, duration: 0.6 }, 0.5);
+  tl.to('#s1-nn', { opacity: 1, duration: 0.5 }, 11.0);
+  tl.to('#s1-m2-lab', { opacity: 1, duration: 0.4 }, 11.5);
+  tl.to('#s1-fa', { opacity: 1, duration: 0.4 }, 13.5);
+  tl.to('#s1-out-arr', { opacity: 1, duration: 0.4 }, 19.5);
+  tl.to('#s1-out', { opacity: 1, duration: 0.5 }, 20.0);
+  tl.to('#s1-title', { opacity: 1, duration: 0.5 }, 22.0);
+  tl.to('#s1', { opacity: 0, duration: 0.5 }, 28.57);
+  tl.to('#flash', { opacity: 1, duration: 0.05 }, 28.97);
+  tl.to('#flash', { opacity: 0, duration: 0.15 }, 29.04);
+
+  // SCENE 2 — Neurons, Weights, and Activations (audio: 29.07s)
+  tl.set('#s2', { opacity: 1 }, 29.07);
+  tl.to('#s2-title', { opacity: 1, duration: 0.4 }, 29.57);
+  tl.to('#s2-upath', { strokeDashoffset: 0, duration: 0.7, ease: 'power2.inOut' }, 29.77);
+  tl.to('#s2-inputs', { opacity: 1, duration: 0.5 }, 30.07);
+  tl.to('#s2-weights', { opacity: 1, duration: 0.5 }, 36.50);
+  tl.to('#s2-sum', { opacity: 1, duration: 0.4 }, 39.50);
+  tl.to('#s2-bias', { opacity: 1, duration: 0.4 }, 41.50);
+  tl.to('#s2-act-line', { opacity: 1, duration: 0.3 }, 44.00);
+  tl.to('#s2-act', { opacity: 1, duration: 0.4 }, 44.30);
+  tl.to('#s2-output', { opacity: 1, duration: 0.4 }, 45.00);
+  tl.to('#s2-nl-label', { opacity: 1, duration: 0.4 }, 47.50);
+  tl.to('#s2-collapse', { opacity: 1, duration: 0.5 }, 51.50);
+  tl.to('#s2', { opacity: 0, duration: 0.5 }, 58.99);
+  tl.to('#flash', { opacity: 1, duration: 0.05 }, 59.39);
+  tl.to('#flash', { opacity: 0, duration: 0.15 }, 59.46);
+
+  // SCENE 3 — The Forward Pass (audio: 59.49s)
+  // da4 (bottom node) removed from all waves
+  tl.set('#s3', { opacity: 1 }, 59.49);
+  tl.to('#s3-title', { opacity: 1, duration: 0.4 }, 59.99);
+  tl.to('#s3-upath', { strokeDashoffset: 0, duration: 0.7, ease: 'power2.inOut' }, 60.19);
+  tl.to('#s3-labels', { opacity: 1, duration: 0.4 }, 60.49);
+  tl.to('#s3-conn1', { opacity: 1, duration: 0.3 }, 60.79);
+  tl.to('#s3-conn2', { opacity: 1, duration: 0.3 }, 60.99);
+  tl.to('#s3-conn3', { opacity: 1, duration: 0.3 }, 61.19);
+  tl.to('#s3-l1', { opacity: 1, duration: 0.4 }, 61.49);
+  tl.to('#s3-l2', { opacity: 1, duration: 0.4 }, 61.79);
+  tl.to('#s3-l3', { opacity: 1, duration: 0.4 }, 62.09);
+  tl.to('#s3-out', { opacity: 1, duration: 0.4 }, 62.39);
+  tl.to('#s3-fp-label', { opacity: 1, duration: 0.4 }, 63.00);
+  // Wave 1: L1→L2→L3→Output (3 input dots, no bottom node)
+  tl.to(['#s3-da1','#s3-da2','#s3-da3'], { opacity: 1, duration: 0.15 }, 63.50);
+  tl.to('#s3-da1', { attr: { cx: 840, cy: 340 }, duration: 1.2, ease: 'power1.inOut' }, 63.50);
+  tl.to('#s3-da2', { attr: { cx: 840, cy: 460 }, duration: 1.2, ease: 'power1.inOut' }, 63.50);
+  tl.to('#s3-da3', { attr: { cx: 840, cy: 580 }, duration: 1.2, ease: 'power1.inOut' }, 63.50);
+  tl.to(['#s3-da1','#s3-da2','#s3-da3'], { opacity: 0, duration: 0.2 }, 64.85);
+  tl.to(['#s3-db1','#s3-db2','#s3-db3'], { opacity: 1, duration: 0.15 }, 65.10);
+  tl.to('#s3-db1', { attr: { cx: 1340, cy: 340 }, duration: 1.2, ease: 'power1.inOut' }, 65.10);
+  tl.to('#s3-db2', { attr: { cx: 1340, cy: 460 }, duration: 1.2, ease: 'power1.inOut' }, 65.10);
+  tl.to('#s3-db3', { attr: { cx: 1340, cy: 580 }, duration: 1.2, ease: 'power1.inOut' }, 65.10);
+  tl.to(['#s3-db1','#s3-db2','#s3-db3'], { opacity: 0, duration: 0.2 }, 66.45);
+  tl.to(['#s3-dc1','#s3-dc2'], { opacity: 1, duration: 0.15 }, 66.70);
+  tl.to('#s3-dc1', { attr: { cx: 1620, cy: 460 }, duration: 1.2, ease: 'power1.inOut' }, 66.70);
+  tl.to('#s3-dc2', { attr: { cx: 1620, cy: 580 }, duration: 1.2, ease: 'power1.inOut' }, 66.70);
+  tl.to(['#s3-dc1','#s3-dc2'], { opacity: 0, duration: 0.2 }, 68.05);
+  // Wave 2 reset + run
+  tl.set('#s3-da1', { attr: { cx: 340, cy: 340 } }, 68.40);
+  tl.set('#s3-da2', { attr: { cx: 340, cy: 460 } }, 68.40);
+  tl.set('#s3-da3', { attr: { cx: 340, cy: 580 } }, 68.40);
+  tl.set('#s3-db1', { attr: { cx: 840, cy: 340 } }, 68.40);
+  tl.set('#s3-db2', { attr: { cx: 840, cy: 460 } }, 68.40);
+  tl.set('#s3-db3', { attr: { cx: 840, cy: 580 } }, 68.40);
+  tl.set('#s3-dc1', { attr: { cx: 1340, cy: 340 } }, 68.40);
+  tl.set('#s3-dc2', { attr: { cx: 1340, cy: 460 } }, 68.40);
+  tl.to(['#s3-da1','#s3-da2','#s3-da3'], { opacity: 1, duration: 0.15 }, 68.70);
+  tl.to('#s3-da1', { attr: { cx: 840, cy: 340 }, duration: 1.2, ease: 'power1.inOut' }, 68.70);
+  tl.to('#s3-da2', { attr: { cx: 840, cy: 460 }, duration: 1.2, ease: 'power1.inOut' }, 68.70);
+  tl.to('#s3-da3', { attr: { cx: 840, cy: 580 }, duration: 1.2, ease: 'power1.inOut' }, 68.70);
+  tl.to(['#s3-da1','#s3-da2','#s3-da3'], { opacity: 0, duration: 0.2 }, 70.05);
+  tl.to(['#s3-db1','#s3-db2','#s3-db3'], { opacity: 1, duration: 0.15 }, 70.30);
+  tl.to('#s3-db1', { attr: { cx: 1340, cy: 340 }, duration: 1.2, ease: 'power1.inOut' }, 70.30);
+  tl.to('#s3-db2', { attr: { cx: 1340, cy: 460 }, duration: 1.2, ease: 'power1.inOut' }, 70.30);
+  tl.to('#s3-db3', { attr: { cx: 1340, cy: 580 }, duration: 1.2, ease: 'power1.inOut' }, 70.30);
+  tl.to(['#s3-db1','#s3-db2','#s3-db3'], { opacity: 0, duration: 0.2 }, 71.65);
+  tl.to(['#s3-dc1','#s3-dc2'], { opacity: 1, duration: 0.15 }, 71.90);
+  tl.to('#s3-dc1', { attr: { cx: 1620, cy: 460 }, duration: 1.2, ease: 'power1.inOut' }, 71.90);
+  tl.to('#s3-dc2', { attr: { cx: 1620, cy: 580 }, duration: 1.2, ease: 'power1.inOut' }, 71.90);
+  tl.to(['#s3-dc1','#s3-dc2'], { opacity: 0, duration: 0.2 }, 73.25);
+  // Wave 3 reset + run
+  tl.set('#s3-da1', { attr: { cx: 340, cy: 340 } }, 73.60);
+  tl.set('#s3-da2', { attr: { cx: 340, cy: 460 } }, 73.60);
+  tl.set('#s3-da3', { attr: { cx: 340, cy: 580 } }, 73.60);
+  tl.set('#s3-db1', { attr: { cx: 840, cy: 340 } }, 73.60);
+  tl.set('#s3-db2', { attr: { cx: 840, cy: 460 } }, 73.60);
+  tl.set('#s3-db3', { attr: { cx: 840, cy: 580 } }, 73.60);
+  tl.set('#s3-dc1', { attr: { cx: 1340, cy: 340 } }, 73.60);
+  tl.set('#s3-dc2', { attr: { cx: 1340, cy: 460 } }, 73.60);
+  tl.to(['#s3-da1','#s3-da2','#s3-da3'], { opacity: 1, duration: 0.15 }, 73.90);
+  tl.to('#s3-da1', { attr: { cx: 840, cy: 340 }, duration: 1.2, ease: 'power1.inOut' }, 73.90);
+  tl.to('#s3-da2', { attr: { cx: 840, cy: 460 }, duration: 1.2, ease: 'power1.inOut' }, 73.90);
+  tl.to('#s3-da3', { attr: { cx: 840, cy: 580 }, duration: 1.2, ease: 'power1.inOut' }, 73.90);
+  tl.to(['#s3-da1','#s3-da2','#s3-da3'], { opacity: 0, duration: 0.2 }, 75.25);
+  tl.to(['#s3-db1','#s3-db2','#s3-db3'], { opacity: 1, duration: 0.15 }, 75.50);
+  tl.to('#s3-db1', { attr: { cx: 1340, cy: 340 }, duration: 1.2, ease: 'power1.inOut' }, 75.50);
+  tl.to('#s3-db2', { attr: { cx: 1340, cy: 460 }, duration: 1.2, ease: 'power1.inOut' }, 75.50);
+  tl.to('#s3-db3', { attr: { cx: 1340, cy: 580 }, duration: 1.2, ease: 'power1.inOut' }, 75.50);
+  tl.to(['#s3-db1','#s3-db2','#s3-db3'], { opacity: 0, duration: 0.2 }, 76.85);
+  tl.to(['#s3-dc1','#s3-dc2'], { opacity: 1, duration: 0.15 }, 77.10);
+  tl.to('#s3-dc1', { attr: { cx: 1620, cy: 460 }, duration: 1.2, ease: 'power1.inOut' }, 77.10);
+  tl.to('#s3-dc2', { attr: { cx: 1620, cy: 580 }, duration: 1.2, ease: 'power1.inOut' }, 77.10);
+  tl.to(['#s3-dc1','#s3-dc2'], { opacity: 0, duration: 0.2 }, 78.45);
+  tl.to('#s3-weights-note', { opacity: 1, duration: 0.5 }, 78.80);
+  tl.to('#s3', { opacity: 0, duration: 0.5 }, 82.77);
+  tl.to('#flash', { opacity: 1, duration: 0.05 }, 83.17);
+  tl.to('#flash', { opacity: 0, duration: 0.15 }, 83.24);
+
+  // SCENE 4 — The Loss Function (audio: 83.27s)
+  tl.set('#s4', { opacity: 1 }, 83.27);
+  tl.to('#s4-title', { opacity: 1, duration: 0.4 }, 83.77);
+  tl.to('#s4-upath', { strokeDashoffset: 0, duration: 0.7, ease: 'power2.inOut' }, 83.97);
+  tl.to('#s4-pred', { opacity: 1, duration: 0.5 }, 84.27);
+  tl.to('#s4-true', { opacity: 1, duration: 0.5 }, 85.27);
+  tl.to('#s4-arr1', { opacity: 1, duration: 0.3 }, 86.27);
+  tl.to('#s4-arr2', { opacity: 1, duration: 0.3 }, 86.47);
+  tl.to('#s4-loss-box', { opacity: 1, duration: 0.5 }, 86.77);
+  tl.to('#s4-arr3', { opacity: 1, duration: 0.3 }, 88.77);
+  tl.to('#s4-loss-val', { opacity: 1, duration: 0.5 }, 93.27);
+  tl.to('#s4-note', { opacity: 1, duration: 0.4 }, 96.77);
+  tl.to('#s4-minimize', { opacity: 1, duration: 0.5 }, 100.77);
+  tl.to('#s4', { opacity: 0, duration: 0.5 }, 105.25);
+  tl.to('#flash', { opacity: 1, duration: 0.05 }, 105.65);
+  tl.to('#flash', { opacity: 0, duration: 0.15 }, 105.72);
+
+  // SCENE 5 — Backpropagation (audio: 105.75s)
+  tl.set('#s5', { opacity: 1 }, 105.75);
+  tl.to('#s5-title', { opacity: 1, duration: 0.4 }, 106.25);
+  tl.to('#s5-upath', { strokeDashoffset: 0, duration: 0.7, ease: 'power2.inOut' }, 106.45);
+  tl.to('#s5-labels', { opacity: 1, duration: 0.4 }, 106.75);
+  tl.to('#s5-conn', { opacity: 1, duration: 0.4 }, 107.05);
+  tl.to('#s5-l1', { opacity: 1, duration: 0.4 }, 107.25);
+  tl.to('#s5-l2', { opacity: 1, duration: 0.4 }, 107.45);
+  tl.to('#s5-l3', { opacity: 1, duration: 0.4 }, 107.65);
+  tl.to('#s5-out', { opacity: 1, duration: 0.5 }, 107.95);
+  // Backward dots: Output→L3→L2→L1 (start when audio says "working backward")
+  tl.to(['#s5-da1','#s5-da2','#s5-da3'], { opacity: 1, duration: 0.1 }, 113.50);
+  tl.to('#s5-da1', { attr: { cx: 1340, cy: 340 }, duration: 1.1, ease: 'power1.inOut' }, 113.50);
+  tl.to('#s5-da2', { attr: { cx: 1340, cy: 460 }, duration: 1.1, ease: 'power1.inOut' }, 113.50);
+  tl.to('#s5-da3', { attr: { cx: 1340, cy: 580 }, duration: 1.1, ease: 'power1.inOut' }, 113.50);
+  tl.to(['#s5-da1','#s5-da2','#s5-da3'], { opacity: 0, duration: 0.2 }, 114.80);
+  tl.to(['#s5-db1','#s5-db2','#s5-db3'], { opacity: 1, duration: 0.1 }, 115.10);
+  tl.to('#s5-db1', { attr: { cx: 840, cy: 340 }, duration: 1.1, ease: 'power1.inOut' }, 115.10);
+  tl.to('#s5-db2', { attr: { cx: 840, cy: 460 }, duration: 1.1, ease: 'power1.inOut' }, 115.10);
+  tl.to('#s5-db3', { attr: { cx: 840, cy: 580 }, duration: 1.1, ease: 'power1.inOut' }, 115.10);
+  tl.to(['#s5-db1','#s5-db2','#s5-db3'], { opacity: 0, duration: 0.2 }, 116.40);
+  tl.to(['#s5-dc1','#s5-dc2','#s5-dc3'], { opacity: 1, duration: 0.1 }, 116.70);
+  tl.to('#s5-dc1', { attr: { cx: 340, cy: 340 }, duration: 1.1, ease: 'power1.inOut' }, 116.70);
+  tl.to('#s5-dc2', { attr: { cx: 340, cy: 460 }, duration: 1.1, ease: 'power1.inOut' }, 116.70);
+  tl.to('#s5-dc3', { attr: { cx: 340, cy: 580 }, duration: 1.1, ease: 'power1.inOut' }, 116.70);
+  tl.to(['#s5-dc1','#s5-dc2','#s5-dc3'], { opacity: 0, duration: 0.2 }, 118.00);
+  tl.to('#s5-chain-label', { opacity: 1, duration: 0.4 }, 115.50);
+  tl.to('#s5-grads', { opacity: 1, duration: 0.6 }, 121.75);
+  tl.to('#s5-direction', { opacity: 1, duration: 0.5 }, 128.50);
+  tl.to('#s5', { opacity: 0, duration: 0.5 }, 137.33);
+  tl.to('#flash', { opacity: 1, duration: 0.05 }, 137.73);
+  tl.to('#flash', { opacity: 0, duration: 0.15 }, 137.80);
+
+  // SCENE 6 — Gradient Descent (audio: 137.83s)
+  tl.set('#s6', { opacity: 1 }, 137.83);
+  tl.to('#s6-title', { opacity: 1, duration: 0.4 }, 138.33);
+  tl.to('#s6-upath', { strokeDashoffset: 0, duration: 0.7, ease: 'power2.inOut' }, 138.53);
+  tl.to('#s6-curve', { opacity: 1, duration: 0.5 }, 138.83);
+  tl.to('#s6-ball', { opacity: 1, duration: 0.5 }, 139.83);
+  tl.to('#s6-lr-label', { opacity: 1, duration: 0.4 }, 141.33);
+  tl.to('#s6-overshoot', { opacity: 1, duration: 0.5 }, 149.83);
+  tl.to('#s6-stall', { opacity: 1, duration: 0.5 }, 157.83);
+  tl.to('#s6', { opacity: 0, duration: 0.5 }, 161.97);
+  tl.to('#flash', { opacity: 1, duration: 0.05 }, 162.37);
+  tl.to('#flash', { opacity: 0, duration: 0.15 }, 162.44);
+
+  // SCENE 7 — Practical Implications (audio: 162.46s)
+  tl.set('#s7', { opacity: 1 }, 162.46);
+  tl.to('#s7-title', { opacity: 1, duration: 0.4 }, 162.96);
+  tl.to('#s7-upath', { strokeDashoffset: 0, duration: 0.7, ease: 'power2.inOut' }, 163.16);
+  tl.to('#s7-card1', { opacity: 1, y: 0, duration: 0.5 }, 165.96);
+  tl.to('#s7-sol1', { opacity: 1, duration: 0.3 }, 171.96);
+  tl.to('#s7-card2', { opacity: 1, y: 0, duration: 0.5 }, 172.96);
+  tl.to('#s7-card3', { opacity: 1, y: 0, duration: 0.5 }, 182.96);
+  tl.to('#s7-sol2', { opacity: 1, duration: 0.3 }, 185.46);
+  tl.to('#s7-sol3', { opacity: 1, duration: 0.3 }, 186.46);
+  tl.to('#s7-note', { opacity: 1, duration: 0.5 }, 192.46);
+  tl.to('#s7', { opacity: 0, duration: 0.5 }, 199.99);
+  tl.to('#flash', { opacity: 1, duration: 0.05 }, 200.39);
+  tl.to('#flash', { opacity: 0, duration: 0.15 }, 200.46);
+
+  // SCENE 8 — Conclusion (audio: 200.49s)
+  tl.set('#s8', { opacity: 1 }, 200.49);
+  tl.to('#s8-tag', { opacity: 1, duration: 0.4 }, 200.99);
+  tl.to('#s8-pipe', { opacity: 1, duration: 0.8 }, 201.49);
+  tl.to('#s8-mod-labels', { opacity: 1, duration: 0.5 }, 202.99);
+  tl.to('#s8-label', { opacity: 1, duration: 0.6 }, 219.99);
+
+  // End marker — video ends at 3:46
+  tl.set({}, {}, 226.0);
+
+  window.__timelines = window.__timelines || {};
+  window.__timelines['neural-networks-and-backpropagation'] = tl;
+</script>
+</body>
+</html>

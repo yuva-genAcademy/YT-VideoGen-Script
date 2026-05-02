@@ -1,0 +1,62 @@
+{
+  "total_duration": 225.471333,
+  "voice": "bm_george",
+  "sections": [
+    {
+      "id": "s01",
+      "label": "Picking Up From Tokens",
+      "start": 0.0,
+      "audio_duration": 27.072,
+      "end": 27.0
+    },
+    {
+      "id": "s02",
+      "label": "Neurons Weights and Activations",
+      "start": 29.07,
+      "audio_duration": 28.416,
+      "end": 64.07
+    },
+    {
+      "id": "s03",
+      "label": "The Forward Pass",
+      "start": 59.49,
+      "audio_duration": 21.781,
+      "end": 84.49
+    },
+    {
+      "id": "s04",
+      "label": "The Loss Function",
+      "start": 83.27,
+      "audio_duration": 20.48,
+      "end": 108.27
+    },
+    {
+      "id": "s05",
+      "label": "Backpropagation",
+      "start": 105.75,
+      "audio_duration": 30.08,
+      "end": 146.75
+    },
+    {
+      "id": "s06",
+      "label": "Gradient Descent",
+      "start": 137.83,
+      "audio_duration": 22.635,
+      "end": 164.83
+    },
+    {
+      "id": "s07",
+      "label": "Practical Implications",
+      "start": 162.46,
+      "audio_duration": 36.032,
+      "end": 198.46
+    },
+    {
+      "id": "s08",
+      "label": "Conclusion",
+      "start": 200.49,
+      "audio_duration": 24.981,
+      "end": 230.49
+    }
+  ]
+}
